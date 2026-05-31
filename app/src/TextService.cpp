@@ -4,6 +4,7 @@
 
 #include "DisplayAttribute.h"
 #include "EditSession.h"
+#include "LangBarButton.h"
 #include "bnphonetic/Transliterator.h"
 
 namespace {
@@ -30,6 +31,9 @@ char ToLatin(WPARAM vk, bool shift) {
   return static_cast<char>(vk);  // digits
 }
 
+const WCHAR kConfigKey[] = L"Software\\BanglaPhonetic";
+const WCHAR kConfigValue[] = L"Enabled";
+
 }  // namespace
 
 CTextService::CTextService()
@@ -37,7 +41,9 @@ CTextService::CTextService()
       thread_mgr_(nullptr),
       client_id_(TF_CLIENTID_NULL),
       composition_(nullptr),
-      display_attribute_atom_(TF_INVALID_GUIDATOM) {
+      display_attribute_atom_(TF_INVALID_GUIDATOM),
+      langbar_button_(nullptr),
+      enabled_(true) {
   DllAddRef();
 }
 
@@ -84,6 +90,7 @@ STDMETHODIMP CTextService::ActivateEx(ITfThreadMgr* ptim, TfClientId tid,
   thread_mgr_->AddRef();
   client_id_ = tid;
   buffer_.clear();
+  LoadConfig();
 
   // Map our display attribute GUID to an atom for tagging composition ranges.
   ITfCategoryMgr* category_mgr = nullptr;
@@ -102,10 +109,17 @@ STDMETHODIMP CTextService::ActivateEx(ITfThreadMgr* ptim, TfClientId tid,
                                       static_cast<ITfKeyEventSink*>(this), TRUE);
     keystroke_mgr->Release();
   }
+
+  PreserveToggleKey(true);
+  AddLangBarButton();
   return S_OK;
 }
 
 STDMETHODIMP CTextService::Deactivate() {
+  SaveConfig();
+  RemoveLangBarButton();
+  PreserveToggleKey(false);
+
   if (thread_mgr_) {
     ITfKeystrokeMgr* keystroke_mgr = nullptr;
     if (SUCCEEDED(thread_mgr_->QueryInterface(
@@ -235,8 +249,9 @@ STDMETHODIMP CTextService::OnTestKeyDown(ITfContext* /*pic*/, WPARAM wParam,
                                          LPARAM /*lParam*/, BOOL* pfEaten) {
   if (pfEaten == nullptr) return E_INVALIDARG;
   // We consume composing keys, and backspace only while a buffer exists.
-  *pfEaten = IsComposingKey(wParam) ||
-             (wParam == VK_BACK && !buffer_.empty());
+  // In English mode nothing is consumed (keys pass straight through).
+  *pfEaten = enabled_ && (IsComposingKey(wParam) ||
+                          (wParam == VK_BACK && !buffer_.empty()));
   return S_OK;
 }
 
@@ -249,7 +264,7 @@ STDMETHODIMP CTextService::OnTestKeyUp(ITfContext* /*pic*/, WPARAM /*wParam*/,
 STDMETHODIMP CTextService::OnKeyDown(ITfContext* pic, WPARAM wParam,
                                      LPARAM /*lParam*/, BOOL* pfEaten) {
   if (pfEaten) *pfEaten = FALSE;
-  if (pic == nullptr) return S_OK;
+  if (pic == nullptr || !enabled_) return S_OK;  // English mode: pass through
 
   if (IsComposingKey(wParam)) {
     const bool shift = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
@@ -281,8 +296,14 @@ STDMETHODIMP CTextService::OnKeyUp(ITfContext* /*pic*/, WPARAM /*wParam*/,
   return S_OK;
 }
 
-STDMETHODIMP CTextService::OnPreservedKey(ITfContext* /*pic*/, REFGUID /*rguid*/,
+STDMETHODIMP CTextService::OnPreservedKey(ITfContext* pic, REFGUID rguid,
                                           BOOL* pfEaten) {
+  if (IsEqualGUID(rguid, c_guidToggleKey)) {
+    if (composition_ && pic) EndComposition(pic);
+    ToggleMode();
+    if (pfEaten) *pfEaten = TRUE;
+    return S_OK;
+  }
   if (pfEaten) *pfEaten = FALSE;
   return S_OK;
 }
@@ -318,4 +339,88 @@ STDMETHODIMP CTextService::GetDisplayAttributeInfo(
   if (info == nullptr) return E_OUTOFMEMORY;
   *ppInfo = info;
   return S_OK;
+}
+
+// ---- Mode, language bar, preserved key, config ----
+void CTextService::SetEnabled(bool enabled) {
+  if (enabled_ == enabled) return;
+  enabled_ = enabled;
+  SaveConfig();
+  if (langbar_button_) langbar_button_->NotifyUpdate();
+}
+
+void CTextService::AddLangBarButton() {
+  if (thread_mgr_ == nullptr || langbar_button_ != nullptr) return;
+  langbar_button_ = new (std::nothrow) CLangBarButton(this);
+  if (langbar_button_ == nullptr) return;
+
+  ITfLangBarItemMgr* mgr = nullptr;
+  if (SUCCEEDED(thread_mgr_->QueryInterface(
+          IID_ITfLangBarItemMgr, reinterpret_cast<void**>(&mgr)))) {
+    mgr->AddItem(langbar_button_);
+    mgr->Release();
+  }
+}
+
+void CTextService::RemoveLangBarButton() {
+  if (langbar_button_ == nullptr) return;
+  if (thread_mgr_) {
+    ITfLangBarItemMgr* mgr = nullptr;
+    if (SUCCEEDED(thread_mgr_->QueryInterface(
+            IID_ITfLangBarItemMgr, reinterpret_cast<void**>(&mgr)))) {
+      mgr->RemoveItem(langbar_button_);
+      mgr->Release();
+    }
+  }
+  langbar_button_->Release();
+  langbar_button_ = nullptr;
+}
+
+void CTextService::PreserveToggleKey(bool add) {
+  if (thread_mgr_ == nullptr) return;
+  ITfKeystrokeMgr* keystroke_mgr = nullptr;
+  if (FAILED(thread_mgr_->QueryInterface(
+          IID_ITfKeystrokeMgr, reinterpret_cast<void**>(&keystroke_mgr))))
+    return;
+
+  TF_PRESERVEDKEY key;
+  key.uVKey = 'B';
+  key.uModifiers = TF_MOD_CONTROL | TF_MOD_SHIFT;  // Ctrl+Shift+B
+  if (add) {
+    const WCHAR desc[] = L"Toggle Bangla/English";
+    keystroke_mgr->PreserveKey(client_id_, c_guidToggleKey, &key, desc,
+                               ARRAYSIZE(desc) - 1);
+  } else {
+    keystroke_mgr->UnpreserveKey(c_guidToggleKey, &key);
+  }
+  keystroke_mgr->Release();
+}
+
+void CTextService::LoadConfig() {
+  HKEY hkey = nullptr;
+  if (RegOpenKeyExW(HKEY_CURRENT_USER, kConfigKey, 0, KEY_READ, &hkey) ==
+      ERROR_SUCCESS) {
+    DWORD value = 1;
+    DWORD size = sizeof(value);
+    DWORD type = REG_DWORD;
+    if (RegQueryValueExW(hkey, kConfigValue, nullptr, &type,
+                         reinterpret_cast<BYTE*>(&value), &size) ==
+            ERROR_SUCCESS &&
+        type == REG_DWORD) {
+      enabled_ = (value != 0);
+    }
+    RegCloseKey(hkey);
+  }
+}
+
+void CTextService::SaveConfig() const {
+  HKEY hkey = nullptr;
+  if (RegCreateKeyExW(HKEY_CURRENT_USER, kConfigKey, 0, nullptr,
+                      REG_OPTION_NON_VOLATILE, KEY_WRITE, nullptr, &hkey,
+                      nullptr) == ERROR_SUCCESS) {
+    DWORD value = enabled_ ? 1 : 0;
+    RegSetValueExW(hkey, kConfigValue, 0, REG_DWORD,
+                   reinterpret_cast<const BYTE*>(&value), sizeof(value));
+    RegCloseKey(hkey);
+  }
 }

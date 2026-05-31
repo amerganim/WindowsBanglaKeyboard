@@ -26,6 +26,14 @@ extern const GUID c_guidProfile;
 // {3F9A1E22-7C4B-4D6E-8A11-2B5C7D9E0F34}
 extern const GUID c_guidDisplayAttribute;
 
+// Language-bar button item id.
+// {5D7E0C19-8A34-4B2F-91D6-3E4A5B6C7D80}
+extern const GUID c_guidLangBarItem;
+
+// Preserved key (Ctrl+Shift+B) that toggles Bangla/English mode.
+// {9B4C2E07-1F58-4A3D-86B0-7C2D9E4F5A61}
+extern const GUID c_guidToggleKey;
+
 // Bengali (Bangladesh), bn-BD.
 constexpr LANGID kLangIdBangla = MAKELANGID(LANG_BENGALI, SUBLANG_BENGALI_BANGLADESH);
 

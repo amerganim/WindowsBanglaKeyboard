@@ -4,6 +4,8 @@
 
 #include "Globals.h"
 
+class CLangBarButton;
+
 // The Text Input Processor. It captures keystrokes, runs the phonetic engine,
 // and shows the running result as an underlined TSF composition that is
 // committed into the document on space/enter (Phase 3).
@@ -50,6 +52,12 @@ class CTextService : public ITfTextInputProcessorEx,
   STDMETHODIMP GetDisplayAttributeInfo(
       REFGUID guid, ITfDisplayAttributeInfo** ppInfo) override;
 
+  // Bangla/English mode, shared by the language-bar button and the
+  // Ctrl+Shift+B preserved key.
+  bool IsEnabled() const { return enabled_; }
+  void SetEnabled(bool enabled);
+  void ToggleMode() { SetEnabled(!enabled_); }
+
  private:
   ~CTextService();
 
@@ -58,10 +66,19 @@ class CTextService : public ITfTextInputProcessorEx,
   HRESULT EndComposition(ITfContext* pic);      // finalize, keep committed text
   bool IsComposing() const { return composition_ != nullptr; }
 
+  // Language-bar button, preserved key, and persisted config.
+  void AddLangBarButton();
+  void RemoveLangBarButton();
+  void PreserveToggleKey(bool add);
+  void LoadConfig();
+  void SaveConfig() const;
+
   LONG ref_;
   ITfThreadMgr* thread_mgr_;
   TfClientId client_id_;
   ITfComposition* composition_;  // current composition, or null
   TfGuidAtom display_attribute_atom_;
+  CLangBarButton* langbar_button_;
+  bool enabled_;        // true = transliterate to Bangla; false = pass English
   std::string buffer_;  // accumulated Latin keys for the current word
 };

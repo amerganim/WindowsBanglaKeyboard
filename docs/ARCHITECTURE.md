@@ -88,6 +88,20 @@ drives a live TSF composition:
   Backspace edits the buffer; any other key commits first. `OnCompositionTerminated`
   handles the app tearing down the composition.
 
+**Mode toggle & language bar (Phase 4, done):**
+
+- A Bangla/English mode (`enabled_`). In English mode the sink eats nothing, so
+  keystrokes pass through untouched.
+- **Ctrl+Shift+B** is registered as a TSF preserved key (`PreserveKey` /
+  `OnPreservedKey`) that toggles the mode (committing any active composition
+  first).
+- `CLangBarButton` (`LangBarButton.*`) is an `ITfLangBarItemButton` +
+  `ITfSource` on the language bar / input indicator showing **বাং** vs **Eng**;
+  left-click and its radio menu toggle the same mode, and it redraws via the
+  advised `ITfLangBarItemSink`.
+- The mode persists in `HKCU\Software\BanglaPhonetic\Enabled` (loaded on
+  activate, saved on change/deactivate).
+
 ## Build
 
 Prereqs: VS Build Tools 18 (MSVC 14.51), Windows SDK, CMake + Ninja (bundled).
@@ -117,8 +131,9 @@ x86 the same way: `scripts\build.bat x86 "-DBUILD_TIP=ON"`.
 - **Phase 3 — composition & commit** ✅ — edit sessions, `ITfComposition`,
   underlined preview, commit on space/enter, backspace editing. Remaining:
   live-register + test in apps; English passthrough toggle.
-- **Phase 4 — UX** — candidate/suggestion window, settings, tray + language-bar
-  icon.
+- **Phase 4 — UX** ✅ (in progress) — language-bar button (বাং/Eng), Ctrl+Shift+B
+  mode toggle, persisted config. Remaining: candidate/suggestion window, fuller
+  settings UI, custom-rule editing.
 - **Phase 5 — installer** — WiX/MSIX, per-user registration, code signing.
 - **Phase 6 — compatibility QA & release** — Office, browsers, terminals,
   Electron, elevated apps; beta with native typists.

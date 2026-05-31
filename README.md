@@ -18,7 +18,9 @@ portable, unit-tested phonetic engine at its core.
   in-app testing is the next step.)
 - ✅ **Phase 2 — standalone harness** (`harness/`): console app to convert
   romanized Bangla without registering anything.
-- ⏳ Next: register & test in real apps; English passthrough toggle; installer.
+- ✅ **Phase 4 — UX (started)** (`app/`): language-bar button (বাং/Eng),
+  Ctrl+Shift+B Bangla/English toggle, persisted in the registry.
+- ⏳ Next: register & test in real apps; installer; candidate/suggestion window.
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the design and full roadmap.
 
