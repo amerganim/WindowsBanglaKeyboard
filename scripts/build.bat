@@ -1,0 +1,33 @@
+@echo off
+REM Build the engine + tests (and optionally the TIP) using the VS Build Tools
+REM toolchain. Usage: scripts\build.bat [x64|x86] [extra cmake args...]
+setlocal enabledelayedexpansion
+
+set ROOT=%~dp0..
+set ARCH=%1
+if "%ARCH%"=="" set ARCH=x64
+
+REM Collect any remaining args (e.g. -DBUILD_TIP=ON), quoting each so cmd does
+REM not split them at '='.
+set EXTRA=
+:collect
+shift
+if "%~1"=="" goto done
+set EXTRA=!EXTRA! "%~1"
+goto collect
+:done
+
+set VCVARS=C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\VC\Auxiliary\Build\vcvarsall.bat
+set CMAKE=C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe
+
+call "%VCVARS%" %ARCH%
+if errorlevel 1 exit /b 1
+
+set BUILDDIR=%ROOT%\build-%ARCH%
+"%CMAKE%" -S "%ROOT%" -B "%BUILDDIR%" -G Ninja -DCMAKE_BUILD_TYPE=Release %EXTRA%
+if errorlevel 1 exit /b 1
+
+"%CMAKE%" --build "%BUILDDIR%"
+if errorlevel 1 exit /b 1
+
+endlocal

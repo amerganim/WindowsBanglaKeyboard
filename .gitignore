@@ -1,0 +1,27 @@
+# Build output
+/build/
+/build-x64/
+/build-x86/
+/out/
+*.obj
+*.lib
+*.dll
+*.exp
+*.pdb
+*.ilk
+*.exe
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+Testing/
+
+# IDE
+.vs/
+.vscode/
+*.user
+
+# Local Claude Code settings (machine-specific permission grants)
+.claude/
