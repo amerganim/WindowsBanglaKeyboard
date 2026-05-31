@@ -4,12 +4,13 @@
 
 #include "Globals.h"
 
-// The Text Input Processor itself. Implements the activation entry points and a
-// keystroke sink. In this Phase 0 skeleton the keystroke sink feeds the
-// phonetic engine and traces the result; consuming keys and committing Bangla
-// into the document is Phase 3.
+// The Text Input Processor. It captures keystrokes, runs the phonetic engine,
+// and shows the running result as an underlined TSF composition that is
+// committed into the document on space/enter (Phase 3).
 class CTextService : public ITfTextInputProcessorEx,
-                     public ITfKeyEventSink {
+                     public ITfKeyEventSink,
+                     public ITfCompositionSink,
+                     public ITfDisplayAttributeProvider {
  public:
   CTextService();
 
@@ -39,11 +40,28 @@ class CTextService : public ITfTextInputProcessorEx,
   STDMETHODIMP OnPreservedKey(ITfContext* pic, REFGUID rguid,
                               BOOL* pfEaten) override;
 
+  // ITfCompositionSink
+  STDMETHODIMP OnCompositionTerminated(TfEditCookie ecWrite,
+                                       ITfComposition* pComposition) override;
+
+  // ITfDisplayAttributeProvider
+  STDMETHODIMP EnumDisplayAttributeInfo(
+      IEnumTfDisplayAttributeInfo** ppEnum) override;
+  STDMETHODIMP GetDisplayAttributeInfo(
+      REFGUID guid, ITfDisplayAttributeInfo** ppInfo) override;
+
  private:
   ~CTextService();
+
+  // Composition lifecycle (each runs inside an edit session).
+  HRESULT UpdateComposition(ITfContext* pic);  // start if needed, set text
+  HRESULT EndComposition(ITfContext* pic);      // finalize, keep committed text
+  bool IsComposing() const { return composition_ != nullptr; }
 
   LONG ref_;
   ITfThreadMgr* thread_mgr_;
   TfClientId client_id_;
+  ITfComposition* composition_;  // current composition, or null
+  TfGuidAtom display_attribute_atom_;
   std::string buffer_;  // accumulated Latin keys for the current word
 };

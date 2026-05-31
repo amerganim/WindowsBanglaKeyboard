@@ -91,6 +91,13 @@ HRESULT RegisterProfiles() {
   hr = category_mgr->RegisterCategory(c_clsidBanglaPhonetic,
                                       GUID_TFCAT_TIP_KEYBOARD,
                                       c_clsidBanglaPhonetic);
+  if (SUCCEEDED(hr)) {
+    // Declare that this text service provides display attributes (the
+    // underline shown on composing text).
+    hr = category_mgr->RegisterCategory(c_clsidBanglaPhonetic,
+                                        GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER,
+                                        c_clsidBanglaPhonetic);
+  }
   category_mgr->Release();
   return hr;
 }

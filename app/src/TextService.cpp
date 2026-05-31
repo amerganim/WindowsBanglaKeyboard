@@ -1,9 +1,43 @@
 #include "TextService.h"
 
+#include <new>
+
+#include "DisplayAttribute.h"
+#include "EditSession.h"
 #include "bnphonetic/Transliterator.h"
 
+namespace {
+
+std::wstring Utf8ToUtf16(const std::string& s) {
+  if (s.empty()) return std::wstring();
+  int n = MultiByteToWideChar(CP_UTF8, 0, s.data(),
+                              static_cast<int>(s.size()), nullptr, 0);
+  std::wstring w(static_cast<size_t>(n), L'\0');
+  MultiByteToWideChar(CP_UTF8, 0, s.data(), static_cast<int>(s.size()),
+                      w.empty() ? nullptr : &w[0], n);
+  return w;
+}
+
+// True for keys we accumulate into the phonetic buffer. The engine is
+// case-sensitive, so letters carry their case from Shift.
+bool IsComposingKey(WPARAM vk) {
+  return (vk >= 'A' && vk <= 'Z') || (vk >= '0' && vk <= '9');
+}
+
+char ToLatin(WPARAM vk, bool shift) {
+  if (vk >= 'A' && vk <= 'Z')
+    return shift ? static_cast<char>(vk) : static_cast<char>(vk - 'A' + 'a');
+  return static_cast<char>(vk);  // digits
+}
+
+}  // namespace
+
 CTextService::CTextService()
-    : ref_(1), thread_mgr_(nullptr), client_id_(TF_CLIENTID_NULL) {
+    : ref_(1),
+      thread_mgr_(nullptr),
+      client_id_(TF_CLIENTID_NULL),
+      composition_(nullptr),
+      display_attribute_atom_(TF_INVALID_GUIDATOM) {
   DllAddRef();
 }
 
@@ -19,6 +53,10 @@ STDMETHODIMP CTextService::QueryInterface(REFIID riid, void** ppv) {
     *ppv = static_cast<ITfTextInputProcessorEx*>(this);
   } else if (IsEqualIID(riid, IID_ITfKeyEventSink)) {
     *ppv = static_cast<ITfKeyEventSink*>(this);
+  } else if (IsEqualIID(riid, IID_ITfCompositionSink)) {
+    *ppv = static_cast<ITfCompositionSink*>(this);
+  } else if (IsEqualIID(riid, IID_ITfDisplayAttributeProvider)) {
+    *ppv = static_cast<ITfDisplayAttributeProvider*>(this);
   }
   if (*ppv) {
     AddRef();
@@ -47,10 +85,19 @@ STDMETHODIMP CTextService::ActivateEx(ITfThreadMgr* ptim, TfClientId tid,
   client_id_ = tid;
   buffer_.clear();
 
+  // Map our display attribute GUID to an atom for tagging composition ranges.
+  ITfCategoryMgr* category_mgr = nullptr;
+  if (SUCCEEDED(CoCreateInstance(CLSID_TF_CategoryMgr, nullptr,
+                                 CLSCTX_INPROC_SERVER, IID_ITfCategoryMgr,
+                                 reinterpret_cast<void**>(&category_mgr)))) {
+    category_mgr->RegisterGUID(c_guidDisplayAttribute, &display_attribute_atom_);
+    category_mgr->Release();
+  }
+
   // Register for keystroke notifications.
   ITfKeystrokeMgr* keystroke_mgr = nullptr;
-  if (SUCCEEDED(thread_mgr_->QueryInterface(IID_ITfKeystrokeMgr,
-                                            reinterpret_cast<void**>(&keystroke_mgr)))) {
+  if (SUCCEEDED(thread_mgr_->QueryInterface(
+          IID_ITfKeystrokeMgr, reinterpret_cast<void**>(&keystroke_mgr)))) {
     keystroke_mgr->AdviseKeyEventSink(client_id_,
                                       static_cast<ITfKeyEventSink*>(this), TRUE);
     keystroke_mgr->Release();
@@ -69,18 +116,127 @@ STDMETHODIMP CTextService::Deactivate() {
     thread_mgr_->Release();
     thread_mgr_ = nullptr;
   }
+  if (composition_) {
+    composition_->Release();
+    composition_ = nullptr;
+  }
   client_id_ = TF_CLIENTID_NULL;
+  display_attribute_atom_ = TF_INVALID_GUIDATOM;
   buffer_.clear();
   return S_OK;
+}
+
+// ---- Composition ----
+HRESULT CTextService::UpdateComposition(ITfContext* pic) {
+  if (pic == nullptr) return E_INVALIDARG;
+  const std::wstring text = Utf8ToUtf16(bnphonetic::Transliterate(buffer_));
+
+  CEditSession* session = new (std::nothrow) CEditSession(
+      [this, pic, text](TfEditCookie ec) -> HRESULT {
+        // Start the composition lazily at the current selection.
+        if (composition_ == nullptr) {
+          ITfInsertAtSelection* insert_at_sel = nullptr;
+          if (FAILED(pic->QueryInterface(
+                  IID_ITfInsertAtSelection,
+                  reinterpret_cast<void**>(&insert_at_sel))))
+            return E_FAIL;
+          ITfRange* range = nullptr;
+          HRESULT hr = insert_at_sel->InsertTextAtSelection(
+              ec, TF_IAS_QUERYONLY, nullptr, 0, &range);
+          insert_at_sel->Release();
+          if (FAILED(hr) || range == nullptr) return E_FAIL;
+
+          ITfContextComposition* ctx_composition = nullptr;
+          if (SUCCEEDED(pic->QueryInterface(
+                  IID_ITfContextComposition,
+                  reinterpret_cast<void**>(&ctx_composition)))) {
+            ctx_composition->StartComposition(
+                ec, range, static_cast<ITfCompositionSink*>(this),
+                &composition_);
+            ctx_composition->Release();
+          }
+          range->Release();
+          if (composition_ == nullptr) return E_FAIL;
+        }
+
+        // Replace the composition's text with the latest transliteration.
+        ITfRange* range = nullptr;
+        if (FAILED(composition_->GetRange(&range)) || range == nullptr)
+          return E_FAIL;
+        range->SetText(ec, 0, text.c_str(), static_cast<LONG>(text.size()));
+
+        // Tag the range so it renders with our underline display attribute.
+        if (display_attribute_atom_ != TF_INVALID_GUIDATOM) {
+          ITfProperty* prop = nullptr;
+          if (SUCCEEDED(pic->GetProperty(GUID_PROP_ATTRIBUTE, &prop)) && prop) {
+            VARIANT var;
+            VariantInit(&var);
+            var.vt = VT_I4;
+            var.lVal = display_attribute_atom_;
+            prop->SetValue(ec, range, &var);
+            prop->Release();
+          }
+        }
+
+        // Put the caret at the end of the composition.
+        ITfRange* caret = nullptr;
+        if (SUCCEEDED(range->Clone(&caret)) && caret) {
+          caret->Collapse(ec, TF_ANCHOR_END);
+          TF_SELECTION sel;
+          sel.range = caret;
+          sel.style.ase = TF_AE_NONE;
+          sel.style.fInterimChar = FALSE;
+          pic->SetSelection(ec, 1, &sel);
+          caret->Release();
+        }
+        range->Release();
+        return S_OK;
+      });
+  if (session == nullptr) return E_OUTOFMEMORY;
+
+  HRESULT hr_session = S_OK;
+  pic->RequestEditSession(client_id_, session,
+                          TF_ES_SYNC | TF_ES_READWRITE, &hr_session);
+  session->Release();
+  return hr_session;
+}
+
+HRESULT CTextService::EndComposition(ITfContext* pic) {
+  buffer_.clear();
+  if (composition_ == nullptr || pic == nullptr) return S_OK;
+
+  CEditSession* session = new (std::nothrow) CEditSession(
+      [this](TfEditCookie ec) -> HRESULT {
+        if (composition_) {
+          // Clear the composing display attribute before finalizing.
+          ITfRange* range = nullptr;
+          if (SUCCEEDED(composition_->GetRange(&range)) && range) {
+            composition_->EndComposition(ec);
+            range->Release();
+          }
+          composition_->Release();
+          composition_ = nullptr;
+        }
+        return S_OK;
+      });
+  if (session == nullptr) return E_OUTOFMEMORY;
+
+  HRESULT hr_session = S_OK;
+  pic->RequestEditSession(client_id_, session,
+                          TF_ES_SYNC | TF_ES_READWRITE, &hr_session);
+  session->Release();
+  return hr_session;
 }
 
 // ---- ITfKeyEventSink ----
 STDMETHODIMP CTextService::OnSetFocus(BOOL /*fForeground*/) { return S_OK; }
 
-STDMETHODIMP CTextService::OnTestKeyDown(ITfContext* /*pic*/, WPARAM /*wParam*/,
+STDMETHODIMP CTextService::OnTestKeyDown(ITfContext* /*pic*/, WPARAM wParam,
                                          LPARAM /*lParam*/, BOOL* pfEaten) {
-  // Phase 0: observe only, do not consume keys yet.
-  if (pfEaten) *pfEaten = FALSE;
+  if (pfEaten == nullptr) return E_INVALIDARG;
+  // We consume composing keys, and backspace only while a buffer exists.
+  *pfEaten = IsComposingKey(wParam) ||
+             (wParam == VK_BACK && !buffer_.empty());
   return S_OK;
 }
 
@@ -90,29 +246,32 @@ STDMETHODIMP CTextService::OnTestKeyUp(ITfContext* /*pic*/, WPARAM /*wParam*/,
   return S_OK;
 }
 
-STDMETHODIMP CTextService::OnKeyDown(ITfContext* /*pic*/, WPARAM wParam,
+STDMETHODIMP CTextService::OnKeyDown(ITfContext* pic, WPARAM wParam,
                                      LPARAM /*lParam*/, BOOL* pfEaten) {
   if (pfEaten) *pfEaten = FALSE;
+  if (pic == nullptr) return S_OK;
 
-  const WPARAM vk = wParam;
-  if ((vk >= 'A' && vk <= 'Z') || (vk >= '0' && vk <= '9')) {
-    // Respect Shift to preserve letter case (the engine is case-sensitive).
-    bool shift = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
-    char ch = static_cast<char>(vk);
-    if (vk >= 'A' && vk <= 'Z' && !shift) ch = static_cast<char>(vk - 'A' + 'a');
-    buffer_.push_back(ch);
-  } else if (vk == VK_SPACE || vk == VK_RETURN) {
-    buffer_.clear();  // word boundary
-  } else if (vk == VK_BACK && !buffer_.empty()) {
+  if (IsComposingKey(wParam)) {
+    const bool shift = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
+    buffer_.push_back(ToLatin(wParam, shift));
+    UpdateComposition(pic);
+    if (pfEaten) *pfEaten = TRUE;
+  } else if (wParam == VK_BACK && !buffer_.empty()) {
     buffer_.pop_back();
+    if (buffer_.empty())
+      EndComposition(pic);
+    else
+      UpdateComposition(pic);
+    if (pfEaten) *pfEaten = TRUE;
+  } else if ((wParam == VK_SPACE || wParam == VK_RETURN) && IsComposing()) {
+    // Commit the word; let the space/enter itself fall through to the app.
+    EndComposition(pic);
+    if (pfEaten) *pfEaten = FALSE;
+  } else if (IsComposing()) {
+    // Any other key ends the current word first, then passes through.
+    EndComposition(pic);
+    if (pfEaten) *pfEaten = FALSE;
   }
-
-  // Trace the running transliteration so we can see the engine working
-  // in-process (DebugView / debugger output). Phase 3 replaces this with a
-  // real composition committed into the document.
-  const std::string bangla = bnphonetic::Transliterate(buffer_);
-  OutputDebugStringA(("[BanglaPhonetic] \"" + buffer_ + "\" -> \"" + bangla +
-                      "\"\n").c_str());
   return S_OK;
 }
 
@@ -125,5 +284,38 @@ STDMETHODIMP CTextService::OnKeyUp(ITfContext* /*pic*/, WPARAM /*wParam*/,
 STDMETHODIMP CTextService::OnPreservedKey(ITfContext* /*pic*/, REFGUID /*rguid*/,
                                           BOOL* pfEaten) {
   if (pfEaten) *pfEaten = FALSE;
+  return S_OK;
+}
+
+// ---- ITfCompositionSink ----
+STDMETHODIMP CTextService::OnCompositionTerminated(
+    TfEditCookie /*ecWrite*/, ITfComposition* /*pComposition*/) {
+  // The application (or another service) terminated our composition.
+  if (composition_) {
+    composition_->Release();
+    composition_ = nullptr;
+  }
+  buffer_.clear();
+  return S_OK;
+}
+
+// ---- ITfDisplayAttributeProvider ----
+STDMETHODIMP CTextService::EnumDisplayAttributeInfo(
+    IEnumTfDisplayAttributeInfo** ppEnum) {
+  if (ppEnum == nullptr) return E_INVALIDARG;
+  CEnumDisplayAttributeInfo* e = new (std::nothrow) CEnumDisplayAttributeInfo();
+  if (e == nullptr) return E_OUTOFMEMORY;
+  *ppEnum = e;
+  return S_OK;
+}
+
+STDMETHODIMP CTextService::GetDisplayAttributeInfo(
+    REFGUID guid, ITfDisplayAttributeInfo** ppInfo) {
+  if (ppInfo == nullptr) return E_INVALIDARG;
+  *ppInfo = nullptr;
+  if (!IsEqualGUID(guid, c_guidDisplayAttribute)) return E_INVALIDARG;
+  CDisplayAttributeInfo* info = new (std::nothrow) CDisplayAttributeInfo();
+  if (info == nullptr) return E_OUTOFMEMORY;
+  *ppInfo = info;
   return S_OK;
 }

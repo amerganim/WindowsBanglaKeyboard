@@ -13,7 +13,11 @@ portable, unit-tested phonetic engine at its core.
   stateful assembler; 13 unit tests passing.
 - ✅ **Phase 0 — TSF TIP skeleton** (`app/`): registrable COM input method that
   links the engine into the keystroke path.
-- ⏳ Next: **Phase 3** — compose & commit Bangla into the document.
+- ✅ **Phase 3 — composition & commit** (`app/`): live underlined preview,
+  commit on space/enter, backspace editing. (Builds clean; live registration +
+  in-app testing is the next step.)
+- ⏳ Next: register & test in real apps; English passthrough toggle; Phase 2
+  harness for rule iteration.
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the design and full roadmap.
 

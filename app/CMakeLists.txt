@@ -6,6 +6,7 @@ add_library(BanglaPhonetic SHARED
   src/Globals.cpp
   src/ClassFactory.cpp
   src/TextService.cpp
+  src/DisplayAttribute.cpp
   src/Register.cpp
   BanglaPhonetic.def
 )

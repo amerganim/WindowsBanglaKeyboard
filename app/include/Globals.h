@@ -22,6 +22,10 @@ extern const CLSID c_clsidBanglaPhonetic;
 // {C2A9B6D3-4E15-4A8F-B0C7-2D9E1F3A4B56}
 extern const GUID c_guidProfile;
 
+// Display attribute id for the composing (uncommitted) text.
+// {3F9A1E22-7C4B-4D6E-8A11-2B5C7D9E0F34}
+extern const GUID c_guidDisplayAttribute;
+
 // Bengali (Bangladesh), bn-BD.
 constexpr LANGID kLangIdBangla = MAKELANGID(LANG_BENGALI, SUBLANG_BENGALI_BANGLADESH);
 

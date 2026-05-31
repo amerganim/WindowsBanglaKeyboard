@@ -68,11 +68,22 @@ A registrable in-proc COM server:
 - Exports `DllGetClassObject`, `DllCanUnloadNow`, `DllRegisterServer`,
   `DllUnregisterServer` (via `BanglaPhonetic.def`).
 
-**Phase 0 scope:** the TIP activates, advises a keystroke sink, and on each
-key-down feeds the buffered Latin into the engine, emitting the running result
-via `OutputDebugString` (observe with DebugView). It does **not** yet consume
-keys or commit Bangla into the document — that is Phase 3 (edit sessions +
-`ITfComposition`). Keys are passed through (`*pfEaten = FALSE`) for now.
+**Composition & commit (Phase 3, done):** the TIP now eats composing keys and
+drives a live TSF composition:
+
+- `EditSession.h` — a generic `ITfEditSession` (callback-based) used for all
+  document edits, since TSF only grants read/write access inside an edit session.
+- `UpdateComposition()` lazily starts a composition at the selection
+  (`ITfInsertAtSelection` + `ITfContextComposition::StartComposition`), then
+  replaces its range text with the latest transliteration and moves the caret
+  to the end.
+- The composition range is tagged with `GUID_PROP_ATTRIBUTE` → our display
+  attribute (a dotted underline) via `CDisplayAttributeInfo` /
+  `ITfDisplayAttributeProvider` (`DisplayAttribute.*`), registered under the
+  `GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER` category.
+- Space/Enter commit the word (`EndComposition`, text kept) and fall through;
+  Backspace edits the buffer; any other key commits first. `OnCompositionTerminated`
+  handles the app tearing down the composition.
 
 ## Build
 
@@ -99,9 +110,9 @@ x86 the same way: `scripts\build.bat x86 "-DBUILD_TIP=ON"`.
 - **Phase 1 — phonetic engine** ✅ (curated rule set; tests green) — expand rules
   toward full Avro parity.
 - **Phase 2 — standalone harness** — GUI/console to validate engine feel.
-- **Phase 3 — composition & commit** — edit sessions, `ITfComposition`,
-  underlined preview, commit on space/enter, backspace editing, English
-  passthrough toggle.
+- **Phase 3 — composition & commit** ✅ — edit sessions, `ITfComposition`,
+  underlined preview, commit on space/enter, backspace editing. Remaining:
+  live-register + test in apps; English passthrough toggle.
 - **Phase 4 — UX** — candidate/suggestion window, settings, tray + language-bar
   icon.
 - **Phase 5 — installer** — WiX/MSIX, per-user registration, code signing.
