@@ -14,6 +14,7 @@ enable_testing()
 
 add_subdirectory(engine)
 add_subdirectory(tests)
+add_subdirectory(harness)
 
 # The TSF Text Input Processor (Phase 0/3). It is a Windows-only COM DLL and is
 # off by default so the portable engine + tests build everywhere. Enable with:

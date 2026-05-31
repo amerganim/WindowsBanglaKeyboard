@@ -5,11 +5,13 @@
 // NOTE: This file contains Bangla UTF-8 string literals. It MUST be compiled
 // with UTF-8 source encoding (MSVC: /utf-8, set in the root CMakeLists.txt).
 //
-// This is the Phase 1 rule set: a deliberately curated, self-consistent subset
-// of an Avro-style phonetic scheme. It demonstrates the architecture (greedy
-// longest-match tokenizer + stateful assembler) and is correct for the cases
-// covered by the test suite. The rule table is expected to grow toward full
-// Avro Phonetic parity in later iterations.
+// This is the phonetic rule set: a curated, self-consistent subset of an
+// Avro-style scheme. It demonstrates the architecture (greedy longest-match
+// tokenizer + stateful assembler) and is correct for the cases covered by the
+// test suite, including consonants/conjuncts, dependent/independent vowels,
+// anusvara (ng → ং) vs. the velar-nasal letter (Ng → ঙ), chandrabindu (^),
+// visarga (:) and Bangla digits. The table grows toward full Avro Phonetic
+// parity in later iterations (e.g. ya-phala/ref handling, ৎ, more diphthongs).
 
 namespace bnphonetic {
 namespace {
@@ -36,7 +38,7 @@ const std::unordered_map<std::string, Unit>& Table() {
       {"kh", {Kind::Consonant, "খ", ""}},
       {"g", {Kind::Consonant, "গ", ""}},
       {"gh", {Kind::Consonant, "ঘ", ""}},
-      {"ng", {Kind::Consonant, "ঙ", ""}},
+      {"Ng", {Kind::Consonant, "ঙ", ""}},  // velar-nasal *letter* ঙ
       {"ch", {Kind::Consonant, "চ", ""}},
       {"chh", {Kind::Consonant, "ছ", ""}},
       {"j", {Kind::Consonant, "জ", ""}},
@@ -74,6 +76,7 @@ const std::unordered_map<std::string, Unit>& Table() {
       // ---- Vowels: {independent, dependent-sign} ----
       {"o", {Kind::Vowel, "অ", ""}},  // inherent vowel: no kar after consonant
       {"a", {Kind::Vowel, "আ", "া"}},
+      {"rri", {Kind::Vowel, "ঋ", "ৃ"}},
       {"i", {Kind::Vowel, "ই", "ি"}},
       {"I", {Kind::Vowel, "ঈ", "ী"}},
       {"u", {Kind::Vowel, "উ", "ু"}},
@@ -82,6 +85,12 @@ const std::unordered_map<std::string, Unit>& Table() {
       {"O", {Kind::Vowel, "ও", "ো"}},
       {"OI", {Kind::Vowel, "ঐ", "ৈ"}},
       {"OU", {Kind::Vowel, "ঔ", "ৌ"}},
+
+      // ---- Combining marks (attach to the preceding cluster; emitted
+      // verbatim and do not start a consonant context) ----
+      {"ng", {Kind::Direct, "ং", ""}},   // anusvara (e.g. বাংলা)
+      {"^", {Kind::Direct, "ঁ", ""}},   // chandrabindu (e.g. চাঁদ)
+      {":", {Kind::Direct, "ঃ", ""}},   // visarga
 
       // ---- Digits ----
       {"0", {Kind::Direct, "০", ""}},

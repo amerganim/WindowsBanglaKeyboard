@@ -32,10 +32,14 @@ int main() {
   Check("tumi", "তুমি");
   Check("kobita", "কবিতা");
 
-  // 'ng' as the velar-nasal consonant glyph (ঙ). (Anusvara ং, as in বাংলা, and
-  // disambiguating ng from n+g are reserved for the rule-set expansion; see
-  // docs/ARCHITECTURE.md.)
-  Check("rong", "রঙ");
+  // 'ng' is anusvara ং (attaches to the preceding cluster); 'Ng' is the
+  // velar-nasal letter ঙ.
+  Check("rong", "রং");
+  Check("bangla", "বাংলা");
+
+  // Combining marks and the vocalic vowel ঋ.
+  Check("cha^d", "চাঁদ");   // chandrabindu
+  Check("rriSi", "ঋষি");    // ঋ + ষ + ি
 
   // Inherent vowel 'o' after a consonant produces no kar; following vowel is
   // independent.

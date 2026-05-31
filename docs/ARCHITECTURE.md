@@ -22,6 +22,7 @@ conjuncts). That is a stateful engine, not a static layout.
 ```
 engine/   Portable phonetic transliteration library (no Windows/COM deps).
 tests/    Self-contained unit tests for the engine.
+harness/  Standalone console app to exercise the engine (no registration).
 app/      The TSF TIP: COM DLL that hosts the engine as an input method.
 scripts/  build.bat — configures + builds with the VS Build Tools toolchain.
 docs/     This document.
@@ -44,14 +45,16 @@ The engine has **no Windows dependencies**, so it is fully unit-tested on its
 own (see `tests/`). It is compiled with `/utf-8` because the rule table and
 tests contain Bangla string literals.
 
-#### Rule-set status & known limitations (intentional, for the skeleton)
+#### Rule-set status & known limitations
 
 The current table is a curated, self-consistent Avro-style subset that passes
-the test suite. Reserved for the rule-set expansion:
+the test suite. Covered: consonants & conjuncts, dependent/independent vowels
+incl. `ঋ` (`rri`), **anusvara `ং` (`ng`)** vs. the velar-nasal letter
+**`ঙ` (`Ng`)**, chandrabindu `ঁ` (`^`), visarga `ঃ` (`:`), and Bangla digits.
+Reserved for the rule-set expansion:
 
-- **Anusvara `ং`** (e.g. বাংলা) as distinct from the velar nasal `ঙ`.
-- Disambiguating the `ng` digraph from `n` + `g`.
-- `O`-class diphthongs beyond `OI`/`OU`, chandrabindu, khanda-ta, ৎ, visarga.
+- Disambiguating the `ng` digraph from a genuine `n` + `g` sequence.
+- ya-phala / ref / explicit-hasanta handling, khanda-ta `ৎ`, more diphthongs.
 - Auto-correct/suggestion dictionary.
 
 ### `app` — the TSF TIP (Phase 0 skeleton, done)
@@ -107,9 +110,10 @@ x86 the same way: `scripts\build.bat x86 "-DBUILD_TIP=ON"`.
 
 - **Phase 0 — scaffolding & COM spike** ✅ — repo, build, registrable TIP that
   links the engine into the key path.
-- **Phase 1 — phonetic engine** ✅ (curated rule set; tests green) — expand rules
-  toward full Avro parity.
-- **Phase 2 — standalone harness** — GUI/console to validate engine feel.
+- **Phase 1 — phonetic engine** ✅ (curated rule set incl. anusvara, ঋ,
+  chandrabindu, visarga; tests green) — expand toward full Avro parity.
+- **Phase 2 — standalone harness** ✅ — `harness/` console app (arg + stdin
+  modes) to validate engine feel without registering.
 - **Phase 3 — composition & commit** ✅ — edit sessions, `ITfComposition`,
   underlined preview, commit on space/enter, backspace editing. Remaining:
   live-register + test in apps; English passthrough toggle.
