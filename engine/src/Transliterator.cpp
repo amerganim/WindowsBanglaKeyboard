@@ -61,7 +61,7 @@ const std::unordered_map<std::string, Unit>& Table() {
       {"bh", {Kind::Consonant, "ভ", ""}},
       {"v", {Kind::Consonant, "ভ", ""}},
       {"m", {Kind::Consonant, "ম", ""}},
-      {"z", {Kind::Consonant, "জ", ""}},
+      {"z", {Kind::Consonant, "য", ""}},  // antastha ya (য); জ is `j`
       {"r", {Kind::Consonant, "র", ""}},
       {"l", {Kind::Consonant, "ল", ""}},
       {"sh", {Kind::Consonant, "শ", ""}},
@@ -71,8 +71,8 @@ const std::unordered_map<std::string, Unit>& Table() {
       {"h", {Kind::Consonant, "হ", ""}},
       {"R", {Kind::Consonant, "ড়", ""}},
       {"Rh", {Kind::Consonant, "ঢ়", ""}},
-      {"y", {Kind::Consonant, "য়", ""}},
-      {"Y", {Kind::Consonant, "য", ""}},
+      {"y", {Kind::Consonant, "য়", ""}},  // ya with nukta (য়)
+      {"Y", {Kind::Consonant, "য়", ""}},  // alias of `y` -> য়
 
       // ---- Vowels: {independent, dependent-sign} ----
       {"o", {Kind::Vowel, "অ", ""}},  // inherent vowel: no kar after consonant
@@ -93,6 +93,8 @@ const std::unordered_map<std::string, Unit>& Table() {
       {"^", {Kind::Direct, "ঁ", ""}},   // chandrabindu (e.g. চাঁদ)
       {":", {Kind::Direct, "ঃ", ""}},   // visarga
       {".", {Kind::Direct, "।", ""}},   // dari (Bangla full stop)
+      {"`", {Kind::Direct, "্", ""}},   // explicit hasanta (for ref/ya-phala)
+      {"t`", {Kind::Direct, "ৎ", ""}},  // khanda-ta (U+09CE)
 
       // ---- Digits ----
       {"0", {Kind::Direct, "০", ""}},
@@ -170,7 +172,7 @@ bool IsPhoneticInput(char c) {
   if (c >= 'a' && c <= 'z') return true;
   if (c >= 'A' && c <= 'Z') return true;
   if (c >= '0' && c <= '9') return true;
-  return c == '^' || c == ':' || c == '.';
+  return c == '^' || c == ':' || c == '.' || c == '`';
 }
 
 }  // namespace bnphonetic

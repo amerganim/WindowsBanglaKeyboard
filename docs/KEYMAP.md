@@ -40,9 +40,9 @@ A vowel typed at the start of a word (or after another vowel) is an
 | গ | `g`  | | ড | `D`  | | ব | `b` |
 | ঘ | `gh` | | ঢ | `Dh` | | ভ | `bh` / `v` |
 | ঙ | `Ng` | | ণ | `N`  | | ম | `m` |
-| চ | `ch` | | ত | `t`  | | য | `Y` |
+| চ | `ch` | | ত | `t`  | | য | `z` |
 | ছ | `chh`| | থ | `th` | | র | `r` |
-| জ | `j` / `z` | | দ | `d`  | | ল | `l` |
+| জ | `j`  | | দ | `d`  | | ল | `l` |
 | ঝ | `jh` | | ধ | `dh` | | শ | `sh` |
 | ঞ | `NG` | | ন | `n`  | | ষ | `S` / `Sh` |
 | | | | | | | স | `s` |
@@ -54,7 +54,11 @@ Special consonant forms:
 |:------:|:----:|------|
 | ড় | `R`  | rho (hard r) |
 | ঢ় | `Rh` | rho-ha |
-| য় | `y`  | ya (antastha ya) |
+| য় | `y` / `Y` | ya with nukta (`noy` → নয়) |
+| ৎ | `` t` `` | khanda-ta |
+
+> Note: `j` = জ and `z` = য are different letters. `y`/`Y` = য় (the
+> semivowel, as in `noy` → নয়).
 
 ---
 
@@ -66,6 +70,7 @@ Special consonant forms:
 | ঁ | `^`  | chandrabindu | `cha^d` → চাঁদ |
 | ঃ | `:`  | visarga | `du:kh` → দুঃখ |
 | । | `.`  | dari (full stop) | `sheS.` → শেষ। |
+| ্ | `` ` `` | hasanta (force half-form) | see ref / ya-phala below |
 
 > Note: in Bangla mode `.` always produces the dari (।). To type a Western
 > period, switch to English with **Ctrl+Shift+B**.
@@ -98,16 +103,23 @@ the keyboard joins them with a hasanta (্) automatically.
 | ষ্ট | `ShT` | ষ + ট |
 | শ্চ | `shch`| শ + চ |
 
-Examples: `sundor` → সুন্দর, `bistarito` → বিস্তারিত, `kkhoma`… `kShoma` → ক্ষমা.
+Examples: `sundor` → সুন্দর, `bistarito` → বিস্তারিত, `kShoma` → ক্ষমা.
 
-To force a visible hasanta / stop a conjunct from forming, finish the syllable
-with a vowel (e.g. the inherent `o`).
+### Explicit hasanta (`` ` ``) — ref and ya-phala
+
+Type a backtick `` ` `` to force a hasanta (্) between two consonants:
+
+| Want | Type | Result |
+|------|:----:|:------:|
+| ref (র্ + consonant) | `` r`k `` | র্ক |
+| ya-phala (্য) | `` k`z `` | ক্য |
 
 ---
 
 ## Not yet supported (planned)
 
-- খণ্ড ত (ৎ, khanda-ta), ya-phala / ref styling, and a few rare ligatures.
+- Automatic ref/ya-phala *styling* (they work via the explicit hasanta `` ` ``
+  above; automatic detection is planned) and a few rare ligatures.
 - Disambiguating the `ng` digraph (anusvara) from a literal `n`+`g`.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the engine design.

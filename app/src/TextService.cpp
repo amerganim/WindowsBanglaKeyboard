@@ -229,6 +229,19 @@ HRESULT CTextService::EndComposition(ITfContext* pic,
   CEditSession* session = new (std::nothrow) CEditSession(
       [this, pic, trailing](TfEditCookie ec) -> HRESULT {
         if (composition_) {
+          // Move the caret to the END of the composition before finalizing, so
+          // anything typed next (a committed sign, or a passed-through key) lands
+          // after the word rather than before it.
+          ITfRange* end = nullptr;
+          if (SUCCEEDED(composition_->GetRange(&end)) && end) {
+            end->Collapse(ec, TF_ANCHOR_END);
+            TF_SELECTION sel;
+            sel.range = end;
+            sel.style.ase = TF_AE_END;
+            sel.style.fInterimChar = FALSE;
+            pic->SetSelection(ec, 1, &sel);
+            end->Release();
+          }
           composition_->EndComposition(ec);
           composition_->Release();
           composition_ = nullptr;

@@ -45,6 +45,16 @@ int main() {
   Check(".", "।");          // dari (Bangla full stop)
   Check("Sesh.", "ষেশ।");   // word followed by dari
 
+  // য (z), য় (y) and জ (j) are distinct.
+  Check("z", "য");
+  Check("noy", "নয়");
+  Check("kaj", "কাজ");
+
+  // Explicit hasanta (`) for ref/ya-phala, and khanda-ta (t`).
+  Check("r`k", "র্ক");      // ref
+  Check("k`z", "ক্য");      // ya-phala
+  Check("t`", "ৎ");         // khanda-ta
+
   // Inherent vowel 'o' after a consonant produces no kar; following vowel is
   // independent.
   Check("boi", "বই");
