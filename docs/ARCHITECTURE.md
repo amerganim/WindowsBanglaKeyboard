@@ -84,9 +84,13 @@ drives a live TSF composition:
   attribute (a dotted underline) via `CDisplayAttributeInfo` /
   `ITfDisplayAttributeProvider` (`DisplayAttribute.*`), registered under the
   `GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER` category.
-- Space/Enter commit the word (`EndComposition`, text kept) and fall through;
-  Backspace edits the buffer; any other key commits first. `OnCompositionTerminated`
-  handles the app tearing down the composition.
+- Key handling is driven by `ShouldEat()`, kept identical between
+  `OnTestKeyDown` and `OnKeyDown` (TSF requires consistency; a key reported as
+  not-eaten in the test may never reach `OnKeyDown`). While composing, **Space**
+  is eaten — it commits the word and inserts the space via `EndComposition(pic,
+  L" ")`; **Enter** is eaten and commits (press Enter again for a newline);
+  Backspace edits the buffer; an unhandled key commits the open word.
+  `OnCompositionTerminated` handles the app tearing down the composition.
 
 **Mode toggle & language bar (Phase 4, done):**
 
@@ -99,8 +103,9 @@ drives a live TSF composition:
   `ITfSource` on the language bar / input indicator showing **বাং** vs **Eng**;
   left-click and its radio menu toggle the same mode, and it redraws via the
   advised `ITfLangBarItemSink`.
-- The mode persists in `HKCU\Software\BanglaPhonetic\Enabled` (loaded on
-  activate, saved on change/deactivate).
+- The toggle is **session-only**: activating the Bangla Phonetic input method
+  always starts in Bangla mode (it is not persisted, so switching into the IME
+  never lands you in a stuck "English" state).
 
 ## Build
 

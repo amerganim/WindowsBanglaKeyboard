@@ -19,7 +19,7 @@ portable, unit-tested phonetic engine at its core.
 - ✅ **Phase 2 — standalone harness** (`harness/`): console app to convert
   romanized Bangla without registering anything.
 - ✅ **Phase 4 — UX (started)** (`app/`): language-bar button (বাং/Eng),
-  Ctrl+Shift+B Bangla/English toggle, persisted in the registry.
+  Ctrl+Shift+B Bangla/English toggle (session-only; starts in Bangla).
 - ✅ **Phase 5 — installer** (`installer/`, `scripts\package.bat`): builds
   x64+x86 and stages `dist\` with self-elevating install/uninstall scripts.
 - ⏳ Next: live test in real apps; code signing; candidate/suggestion window.

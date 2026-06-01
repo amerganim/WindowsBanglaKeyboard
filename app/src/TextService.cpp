@@ -31,9 +31,6 @@ char ToLatin(WPARAM vk, bool shift) {
   return static_cast<char>(vk);  // digits
 }
 
-const WCHAR kConfigKey[] = L"Software\\BanglaPhonetic";
-const WCHAR kConfigValue[] = L"Enabled";
-
 }  // namespace
 
 CTextService::CTextService()
@@ -90,7 +87,9 @@ STDMETHODIMP CTextService::ActivateEx(ITfThreadMgr* ptim, TfClientId tid,
   thread_mgr_->AddRef();
   client_id_ = tid;
   buffer_.clear();
-  LoadConfig();
+  // Switching into the Bangla Phonetic input method always starts in Bangla
+  // mode; Ctrl+Shift+B is a within-session convenience, not a sticky setting.
+  enabled_ = true;
 
   // Map our display attribute GUID to an atom for tagging composition ranges.
   ITfCategoryMgr* category_mgr = nullptr;
@@ -116,7 +115,6 @@ STDMETHODIMP CTextService::ActivateEx(ITfThreadMgr* ptim, TfClientId tid,
 }
 
 STDMETHODIMP CTextService::Deactivate() {
-  SaveConfig();
   RemoveLangBarButton();
   PreserveToggleKey(false);
 
@@ -215,21 +213,40 @@ HRESULT CTextService::UpdateComposition(ITfContext* pic) {
   return hr_session;
 }
 
-HRESULT CTextService::EndComposition(ITfContext* pic) {
+HRESULT CTextService::EndComposition(ITfContext* pic,
+                                     const std::wstring& trailing) {
   buffer_.clear();
   if (composition_ == nullptr || pic == nullptr) return S_OK;
 
   CEditSession* session = new (std::nothrow) CEditSession(
-      [this](TfEditCookie ec) -> HRESULT {
+      [this, pic, trailing](TfEditCookie ec) -> HRESULT {
         if (composition_) {
-          // Clear the composing display attribute before finalizing.
-          ITfRange* range = nullptr;
-          if (SUCCEEDED(composition_->GetRange(&range)) && range) {
-            composition_->EndComposition(ec);
-            range->Release();
-          }
+          composition_->EndComposition(ec);
           composition_->Release();
           composition_ = nullptr;
+        }
+        // Insert any trailing text (e.g. the space that committed the word)
+        // after the now-committed Bangla, and place the caret after it.
+        if (!trailing.empty()) {
+          ITfInsertAtSelection* insert_at_sel = nullptr;
+          if (SUCCEEDED(pic->QueryInterface(
+                  IID_ITfInsertAtSelection,
+                  reinterpret_cast<void**>(&insert_at_sel)))) {
+            ITfRange* range = nullptr;
+            if (SUCCEEDED(insert_at_sel->InsertTextAtSelection(
+                    ec, 0, trailing.c_str(),
+                    static_cast<LONG>(trailing.size()), &range)) &&
+                range) {
+              range->Collapse(ec, TF_ANCHOR_END);
+              TF_SELECTION sel;
+              sel.range = range;
+              sel.style.ase = TF_AE_NONE;
+              sel.style.fInterimChar = FALSE;
+              pic->SetSelection(ec, 1, &sel);
+              range->Release();
+            }
+            insert_at_sel->Release();
+          }
         }
         return S_OK;
       });
@@ -245,13 +262,20 @@ HRESULT CTextService::EndComposition(ITfContext* pic) {
 // ---- ITfKeyEventSink ----
 STDMETHODIMP CTextService::OnSetFocus(BOOL /*fForeground*/) { return S_OK; }
 
+bool CTextService::ShouldEat(WPARAM vk) const {
+  if (!enabled_) return false;          // English mode: pass everything through
+  if (IsComposingKey(vk)) return true;  // letters/digits
+  if (vk == VK_BACK) return !buffer_.empty();
+  // Space/Enter are consumed only while a word is composing, so they commit it
+  // (and outside composition they behave normally for the app).
+  if (vk == VK_SPACE || vk == VK_RETURN) return IsComposing();
+  return false;
+}
+
 STDMETHODIMP CTextService::OnTestKeyDown(ITfContext* /*pic*/, WPARAM wParam,
                                          LPARAM /*lParam*/, BOOL* pfEaten) {
   if (pfEaten == nullptr) return E_INVALIDARG;
-  // We consume composing keys, and backspace only while a buffer exists.
-  // In English mode nothing is consumed (keys pass straight through).
-  *pfEaten = enabled_ && (IsComposingKey(wParam) ||
-                          (wParam == VK_BACK && !buffer_.empty()));
+  *pfEaten = ShouldEat(wParam);
   return S_OK;
 }
 
@@ -263,29 +287,31 @@ STDMETHODIMP CTextService::OnTestKeyUp(ITfContext* /*pic*/, WPARAM /*wParam*/,
 
 STDMETHODIMP CTextService::OnKeyDown(ITfContext* pic, WPARAM wParam,
                                      LPARAM /*lParam*/, BOOL* pfEaten) {
-  if (pfEaten) *pfEaten = FALSE;
-  if (pic == nullptr || !enabled_) return S_OK;  // English mode: pass through
+  const bool eaten = (pic != nullptr) && ShouldEat(wParam);
+  if (pfEaten) *pfEaten = eaten ? TRUE : FALSE;
+
+  if (!eaten) {
+    // A key we don't handle: if a word is open, commit it so it doesn't dangle.
+    if (pic && IsComposing()) EndComposition(pic);
+    return S_OK;
+  }
 
   if (IsComposingKey(wParam)) {
     const bool shift = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
     buffer_.push_back(ToLatin(wParam, shift));
     UpdateComposition(pic);
-    if (pfEaten) *pfEaten = TRUE;
-  } else if (wParam == VK_BACK && !buffer_.empty()) {
+  } else if (wParam == VK_BACK) {
     buffer_.pop_back();
     if (buffer_.empty())
       EndComposition(pic);
     else
       UpdateComposition(pic);
-    if (pfEaten) *pfEaten = TRUE;
-  } else if ((wParam == VK_SPACE || wParam == VK_RETURN) && IsComposing()) {
-    // Commit the word; let the space/enter itself fall through to the app.
+  } else if (wParam == VK_SPACE) {
+    // Commit the word and insert the space ourselves (we ate the key).
+    EndComposition(pic, L" ");
+  } else if (wParam == VK_RETURN) {
+    // Commit the word; the Enter is consumed (press Enter again for a newline).
     EndComposition(pic);
-    if (pfEaten) *pfEaten = FALSE;
-  } else if (IsComposing()) {
-    // Any other key ends the current word first, then passes through.
-    EndComposition(pic);
-    if (pfEaten) *pfEaten = FALSE;
   }
   return S_OK;
 }
@@ -345,7 +371,6 @@ STDMETHODIMP CTextService::GetDisplayAttributeInfo(
 void CTextService::SetEnabled(bool enabled) {
   if (enabled_ == enabled) return;
   enabled_ = enabled;
-  SaveConfig();
   if (langbar_button_) langbar_button_->NotifyUpdate();
 }
 
@@ -394,33 +419,4 @@ void CTextService::PreserveToggleKey(bool add) {
     keystroke_mgr->UnpreserveKey(c_guidToggleKey, &key);
   }
   keystroke_mgr->Release();
-}
-
-void CTextService::LoadConfig() {
-  HKEY hkey = nullptr;
-  if (RegOpenKeyExW(HKEY_CURRENT_USER, kConfigKey, 0, KEY_READ, &hkey) ==
-      ERROR_SUCCESS) {
-    DWORD value = 1;
-    DWORD size = sizeof(value);
-    DWORD type = REG_DWORD;
-    if (RegQueryValueExW(hkey, kConfigValue, nullptr, &type,
-                         reinterpret_cast<BYTE*>(&value), &size) ==
-            ERROR_SUCCESS &&
-        type == REG_DWORD) {
-      enabled_ = (value != 0);
-    }
-    RegCloseKey(hkey);
-  }
-}
-
-void CTextService::SaveConfig() const {
-  HKEY hkey = nullptr;
-  if (RegCreateKeyExW(HKEY_CURRENT_USER, kConfigKey, 0, nullptr,
-                      REG_OPTION_NON_VOLATILE, KEY_WRITE, nullptr, &hkey,
-                      nullptr) == ERROR_SUCCESS) {
-    DWORD value = enabled_ ? 1 : 0;
-    RegSetValueExW(hkey, kConfigValue, 0, REG_DWORD,
-                   reinterpret_cast<const BYTE*>(&value), sizeof(value));
-    RegCloseKey(hkey);
-  }
 }

@@ -63,15 +63,19 @@ class CTextService : public ITfTextInputProcessorEx,
 
   // Composition lifecycle (each runs inside an edit session).
   HRESULT UpdateComposition(ITfContext* pic);  // start if needed, set text
-  HRESULT EndComposition(ITfContext* pic);      // finalize, keep committed text
+  // Finalize the composition (keeping the committed text) and optionally insert
+  // a trailing string (e.g. a space) right after it.
+  HRESULT EndComposition(ITfContext* pic, const std::wstring& trailing = std::wstring());
   bool IsComposing() const { return composition_ != nullptr; }
 
-  // Language-bar button, preserved key, and persisted config.
+  // True if we will consume this key (kept identical between OnTestKeyDown and
+  // OnKeyDown, as TSF requires).
+  bool ShouldEat(WPARAM vk) const;
+
+  // Language-bar button + preserved key.
   void AddLangBarButton();
   void RemoveLangBarButton();
   void PreserveToggleKey(bool add);
-  void LoadConfig();
-  void SaveConfig() const;
 
   LONG ref_;
   ITfThreadMgr* thread_mgr_;
