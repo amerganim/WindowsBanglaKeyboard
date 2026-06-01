@@ -21,6 +21,7 @@ target_link_libraries(BanglaPhonetic PRIVATE
   ole32
   advapi32
   user32
+  shell32
 )
 
 set_target_properties(BanglaPhonetic PROPERTIES

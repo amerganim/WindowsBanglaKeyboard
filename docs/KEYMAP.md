@@ -121,8 +121,11 @@ Type a backtick `` ` `` to force a hasanta (্) between two consonants:
 
 ## Not yet supported (planned)
 
-- Automatic ref/ya-phala *styling* (they work via the explicit hasanta `` ` ``
-  above; automatic detection is planned) and a few rare ligatures.
-- Disambiguating the `ng` digraph (anusvara) from a literal `n`+`g`.
+- Word suggestions / a candidate window.
+- Disambiguating the `ng` digraph (anusvara) from a literal `n`+`g`, and a few
+  rare ligatures.
+
+*(ref and ya-phala work automatically — `korm` → কর্ম, `bidza` → বিদ্যা — and
+the explicit hasanta `` ` `` is available for edge cases.)*
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the engine design.

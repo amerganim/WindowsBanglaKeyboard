@@ -45,6 +45,10 @@ try {
     $cfg = 'HKCU:\Software\BanglaPhonetic'
     if (Test-Path $cfg) { Remove-Item $cfg -Recurse -Force }
 
+    # --- remove the Start Menu shortcut folder ---
+    $startFolder = Join-Path ([Environment]::GetFolderPath('CommonPrograms')) 'Bangla Phonetic'
+    if (Test-Path $startFolder) { Remove-Item $startFolder -Recurse -Force -ErrorAction SilentlyContinue }
+
     # --- delete the DLLs (best effort) ---
     # A loaded DLL can't be deleted yet; Windows removes it after the next
     # sign-out/restart. Registration is already gone, so it is inert meanwhile.

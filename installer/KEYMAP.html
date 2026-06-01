@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bangla Phonetic — Typing Guide</title>
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    font-family: "Segoe UI", system-ui, sans-serif;
+    max-width: 880px; margin: 0 auto; padding: 24px 18px 64px;
+    line-height: 1.5; color: #1b1b1b; background: #fafafa;
+  }
+  @media (prefers-color-scheme: dark) {
+    body { color: #e6e6e6; background: #1e1e1e; }
+    th { background: #2d2d2d !important; }
+    td, th { border-color: #444 !important; }
+    code { background: #333 !important; }
+    .card { background: #262626 !important; border-color:#3a3a3a !important;}
+  }
+  h1 { font-size: 1.7rem; margin-bottom: .2em; }
+  h2 { margin-top: 1.6em; border-bottom: 2px solid #d0d0d0; padding-bottom: .2em; }
+  .sub { color: #666; margin-top: 0; }
+  .bn { font-size: 1.25rem; }
+  code { background: #ececec; padding: 1px 6px; border-radius: 4px;
+         font-family: Consolas, "Courier New", monospace; }
+  table { border-collapse: collapse; width: 100%; margin: .6em 0 1.2em; }
+  th, td { border: 1px solid #d0d0d0; padding: 6px 10px; text-align: center; }
+  th { background: #f0f0f0; }
+  .left { text-align: left; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(140px,1fr));
+          gap: 8px; }
+  .card { border:1px solid #ddd; border-radius:8px; padding:10px; background:#fff; }
+  .card .bn { font-size: 1.5rem; }
+  .note { background: #fff7d6; border-left: 4px solid #e0c000; padding: 8px 12px;
+          border-radius: 4px; margin: 10px 0; }
+  @media (prefers-color-scheme: dark){ .note{ background:#3a3413; border-color:#9c8400; } }
+  kbd { background:#222; color:#fff; padding:1px 6px; border-radius:4px; font-size:.85em;}
+</style>
+</head>
+<body>
+
+<h1>Bangla Phonetic — Typing Guide</h1>
+<p class="sub">Type romanized Bangla, then press <kbd>Space</kbd> to commit a word.
+Switch Bangla/English with <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd>.</p>
+
+<div class="note">
+The scheme is <b>case-sensitive</b>: capitals are different letters
+(<code>t</code> = <span class="bn">ত</span> but <code>T</code> =
+<span class="bn">ট</span>).
+</div>
+
+<h2>Vowels</h2>
+<p>A vowel at the start of a word is an <b>independent vowel</b>; right after a
+consonant it becomes a <b>vowel sign (kar)</b> — shown on <span class="bn">ক</span> (<code>k</code>).</p>
+<table>
+<tr><th>Letter</th><th>Type</th><th>After consonant</th><th>Example</th></tr>
+<tr><td class="bn">অ</td><td><code>o</code></td><td>(inherent)</td><td><code>kol</code> → <span class="bn">কল</span></td></tr>
+<tr><td class="bn">আ</td><td><code>a</code></td><td class="bn">কা</td><td><code>kaj</code> → <span class="bn">কাজ</span></td></tr>
+<tr><td class="bn">ই</td><td><code>i</code></td><td class="bn">কি</td><td><code>din</code> → <span class="bn">দিন</span></td></tr>
+<tr><td class="bn">ঈ</td><td><code>I</code></td><td class="bn">কী</td><td><code>nodI</code> → <span class="bn">নদী</span></td></tr>
+<tr><td class="bn">উ</td><td><code>u</code></td><td class="bn">কু</td><td><code>tumi</code> → <span class="bn">তুমি</span></td></tr>
+<tr><td class="bn">ঊ</td><td><code>U</code></td><td class="bn">কূ</td><td><code>mUl</code> → <span class="bn">মূল</span></td></tr>
+<tr><td class="bn">ঋ</td><td><code>rri</code></td><td class="bn">কৃ</td><td><code>rriSi</code> → <span class="bn">ঋষি</span></td></tr>
+<tr><td class="bn">এ</td><td><code>e</code></td><td class="bn">কে</td><td><code>megh</code> → <span class="bn">মেঘ</span></td></tr>
+<tr><td class="bn">ঐ</td><td><code>OI</code></td><td class="bn">কৈ</td><td><code>OI</code> → <span class="bn">ঐ</span></td></tr>
+<tr><td class="bn">ও</td><td><code>O</code></td><td class="bn">কো</td><td><code>nOka</code> → <span class="bn">নোকা</span></td></tr>
+<tr><td class="bn">ঔ</td><td><code>OU</code></td><td class="bn">কৌ</td><td><code>nOUka</code> → <span class="bn">নৌকা</span></td></tr>
+</table>
+
+<h2>Consonants</h2>
+<table>
+<tr><th>Letter</th><th>Type</th><th>Letter</th><th>Type</th><th>Letter</th><th>Type</th></tr>
+<tr><td class="bn">ক</td><td><code>k</code></td><td class="bn">ট</td><td><code>T</code></td><td class="bn">প</td><td><code>p</code></td></tr>
+<tr><td class="bn">খ</td><td><code>kh</code></td><td class="bn">ঠ</td><td><code>Th</code></td><td class="bn">ফ</td><td><code>ph</code> / <code>f</code></td></tr>
+<tr><td class="bn">গ</td><td><code>g</code></td><td class="bn">ড</td><td><code>D</code></td><td class="bn">ব</td><td><code>b</code></td></tr>
+<tr><td class="bn">ঘ</td><td><code>gh</code></td><td class="bn">ঢ</td><td><code>Dh</code></td><td class="bn">ভ</td><td><code>bh</code> / <code>v</code></td></tr>
+<tr><td class="bn">ঙ</td><td><code>Ng</code></td><td class="bn">ণ</td><td><code>N</code></td><td class="bn">ম</td><td><code>m</code></td></tr>
+<tr><td class="bn">চ</td><td><code>ch</code></td><td class="bn">ত</td><td><code>t</code></td><td class="bn">য</td><td><code>z</code></td></tr>
+<tr><td class="bn">ছ</td><td><code>chh</code></td><td class="bn">থ</td><td><code>th</code></td><td class="bn">র</td><td><code>r</code></td></tr>
+<tr><td class="bn">জ</td><td><code>j</code></td><td class="bn">দ</td><td><code>d</code></td><td class="bn">ল</td><td><code>l</code></td></tr>
+<tr><td class="bn">ঝ</td><td><code>jh</code></td><td class="bn">ধ</td><td><code>dh</code></td><td class="bn">শ</td><td><code>sh</code></td></tr>
+<tr><td class="bn">ঞ</td><td><code>NG</code></td><td class="bn">ন</td><td><code>n</code></td><td class="bn">ষ</td><td><code>S</code> / <code>Sh</code></td></tr>
+<tr><td></td><td></td><td></td><td></td><td class="bn">স</td><td><code>s</code></td></tr>
+<tr><td></td><td></td><td></td><td></td><td class="bn">হ</td><td><code>h</code></td></tr>
+</table>
+<p><b>Other forms:</b>
+<span class="bn">ড়</span> <code>R</code> &nbsp;·&nbsp;
+<span class="bn">ঢ়</span> <code>Rh</code> &nbsp;·&nbsp;
+<span class="bn">য়</span> <code>y</code> / <code>Y</code> (as in <code>noy</code> → <span class="bn">নয়</span>) &nbsp;·&nbsp;
+<span class="bn">ৎ</span> <code>t`</code> (khanda-ta) &nbsp;·&nbsp;
+<span class="bn">ব</span>-phola <code>w</code> (e.g. <code>swopno</code> → <span class="bn">স্বপ্ন</span>)
+</p>
+<div class="note"><code>j</code> = <span class="bn">জ</span> and <code>z</code> = <span class="bn">য</span> are <b>different</b> letters;
+<code>y</code> = <span class="bn">য়</span> is the semivowel.</div>
+
+<h2>Signs</h2>
+<table>
+<tr><th>Sign</th><th>Type</th><th>Name</th><th>Example</th></tr>
+<tr><td class="bn">ং</td><td><code>ng</code></td><td>anusvara</td><td><code>bangla</code> → <span class="bn">বাংলা</span></td></tr>
+<tr><td class="bn">ঁ</td><td><code>^</code></td><td>chandrabindu</td><td><code>cha^d</code> → <span class="bn">চাঁদ</span></td></tr>
+<tr><td class="bn">ঃ</td><td><code>:</code></td><td>visarga</td><td><code>du:kh</code> → <span class="bn">দুঃখ</span></td></tr>
+<tr><td class="bn">।</td><td><code>.</code></td><td>dari (full stop)</td><td><code>sheS.</code> → <span class="bn">শেষ।</span></td></tr>
+</table>
+<div class="note">In Bangla mode <code>.</code> always makes the dari
+(<span class="bn">।</span>). For a Western dot, switch to English
+(<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd>).</div>
+
+<h2>Digits</h2>
+<table>
+<tr><td class="bn">০</td><td class="bn">১</td><td class="bn">২</td><td class="bn">৩</td><td class="bn">৪</td><td class="bn">৫</td><td class="bn">৬</td><td class="bn">৭</td><td class="bn">৮</td><td class="bn">৯</td></tr>
+<tr><td><code>0</code></td><td><code>1</code></td><td><code>2</code></td><td><code>3</code></td><td><code>4</code></td><td><code>5</code></td><td><code>6</code></td><td><code>7</code></td><td><code>8</code></td><td><code>9</code></td></tr>
+</table>
+
+<h2>Conjuncts (যুক্তাক্ষর)</h2>
+<p>Type consonants <b>with no vowel between them</b>; they join automatically.</p>
+<div class="grid">
+  <div class="card"><span class="bn">ক্ক</span><br><code>kk</code></div>
+  <div class="card"><span class="bn">ক্ত</span><br><code>kt</code></div>
+  <div class="card"><span class="bn">ক্ষ</span><br><code>kSh</code></div>
+  <div class="card"><span class="bn">ন্দ</span><br><code>nd</code></div>
+  <div class="card"><span class="bn">স্ত</span><br><code>st</code></div>
+  <div class="card"><span class="bn">ষ্ট</span><br><code>ShT</code></div>
+  <div class="card"><span class="bn">শ্চ</span><br><code>shch</code></div>
+  <div class="card"><span class="bn">ন্ত</span><br><code>nt</code></div>
+</div>
+<p><b>ref</b> (<span class="bn">র্</span>) and <b>ya-phala</b>
+(<span class="bn">্য</span>) form automatically:
+<code>korm</code> → <span class="bn">কর্ম</span>,
+<code>dhormo</code> → <span class="bn">ধর্ম</span>,
+<code>bidza</code> → <span class="bn">বিদ্যা</span>,
+<code>nzay</code> → <span class="bn">ন্যায়</span>.
+To force a hasanta, type a backtick <code>`</code> (e.g. <code>r`k</code> →
+<span class="bn">র্ক</span>, <code>k`z</code> → <span class="bn">ক্য</span>).</p>
+
+<h2>Examples</h2>
+<p class="bn left">
+<code>amar sOnar bangla</code> → আমার সোনার বাংলা<br>
+<code>tumi kemon achho</code> → তুমি কেমন আছ<br>
+<code>sundor prithibI</code> → সুন্দর পৃথিবী<br>
+<code>bishwas</code> → বিশ্বাস
+</p>
+
+<p style="color:#888;margin-top:2em;font-size:.9em">Bangla Phonetic Keyboard — typing guide.
+Switch input methods with <kbd>Win</kbd>+<kbd>Space</kbd>.</p>
+
+</body>
+</html>

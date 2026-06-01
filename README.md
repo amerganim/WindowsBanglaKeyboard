@@ -22,7 +22,9 @@ portable, unit-tested phonetic engine at its core.
   Ctrl+Shift+B Bangla/English toggle (session-only; starts in Bangla).
 - ✅ **Phase 5 — installer** (`installer/`, `scripts\package.bat`): builds
   x64+x86 and stages `dist\` with self-elevating install/uninstall scripts.
-- ⏳ Next: live test in real apps; code signing; candidate/suggestion window.
+- ✅ **Typing guide**: installed as a Start Menu shortcut ("Bangla Phonetic
+  Typing Guide") and in the language-bar menu — a full key-map cheat sheet.
+- ⏳ Next: code signing; candidate/suggestion window.
 
 ## Install
 

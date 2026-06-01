@@ -35,7 +35,7 @@ function Register-Dll([string]$regsvr, [string]$dll, [string]$label) {
 
 $AppName   = 'BanglaPhonetic'
 $Display   = 'Bangla Phonetic Keyboard'
-$Version   = '0.6.2'
+$Version   = '0.7.0'
 $Publisher = 'WindowsBanglaKeyboard'
 
 $src  = $PSScriptRoot
@@ -62,6 +62,8 @@ try {
     if (-not (Test-Path $dllX64)) { Copy-Item $dllX64src $dllX64 }
     if ($haveX86 -and -not (Test-Path $dllX86)) { Copy-Item $dllX86src $dllX86 }
     Copy-Item (Join-Path $src 'uninstall.ps1') (Join-Path $dest 'uninstall.ps1') -Force -ErrorAction SilentlyContinue
+    $guide = Join-Path $dest 'KEYMAP.html'
+    Copy-Item (Join-Path $src 'KEYMAP.html') $guide -Force -ErrorAction SilentlyContinue
 
     # --- register (regsvr32 calls our DllRegisterServer; same CLSID, so this
     # repoints the existing registration at the new file) ---
@@ -82,6 +84,18 @@ try {
     Set-ItemProperty $arp NoModify 1 -Type DWord
     Set-ItemProperty $arp NoRepair 1 -Type DWord
 
+    # --- Start Menu shortcut to the typing guide (discoverable tutorial) ---
+    if (Test-Path $guide) {
+        $programs = [Environment]::GetFolderPath('CommonPrograms')
+        $folder = Join-Path $programs 'Bangla Phonetic'
+        New-Item -ItemType Directory -Force -Path $folder | Out-Null
+        $ws = New-Object -ComObject WScript.Shell
+        $lnk = $ws.CreateShortcut((Join-Path $folder 'Bangla Phonetic Typing Guide.lnk'))
+        $lnk.TargetPath = $guide
+        $lnk.Description = 'How to type Bangla phonetically (key map / tutorial)'
+        $lnk.Save()
+    }
+
     # --- clean up older builds' DLLs (best effort; loaded ones are skipped and
     # are harmlessly removed after the next restart) ---
     Get-ChildItem $dest -Filter 'BanglaPhonetic_x64*.dll' -ErrorAction SilentlyContinue |
@@ -95,6 +109,7 @@ try {
     Write-Host "$Display $Version installed (no restart needed)." -ForegroundColor Green
     Write-Host 'Switch input methods with Win+Space (look for "Bangla Phonetic").'
     Write-Host 'Toggle Bangla/English with Ctrl+Shift+B.'
+    Write-Host 'Typing guide: Start Menu > Bangla Phonetic > "Bangla Phonetic Typing Guide".'
     Write-Host 'If an app was already open, close and reopen it to pick up this version.'
     Write-Host 'If it does not appear, add the Bengali language under Settings > Time and language > Language.'
 } catch {

@@ -1,14 +1,31 @@
 #include "LangBarButton.h"
 
 #include <olectl.h>
+#include <shellapi.h>
 #include <strsafe.h>
+
+#include <string>
 
 #include "TextService.h"
 
 namespace {
 const UINT kMenuBangla = 1;
 const UINT kMenuEnglish = 2;
+const UINT kMenuGuide = 3;
 const DWORD kSinkCookie = 0x42;
+
+// Open the bundled typing guide (KEYMAP.html, installed next to this DLL) in
+// the default browser.
+void OpenTypingGuide() {
+  WCHAR path[MAX_PATH];
+  DWORD n = GetModuleFileNameW(g_hInst, path, ARRAYSIZE(path));
+  if (n == 0 || n >= ARRAYSIZE(path)) return;
+  WCHAR* slash = wcsrchr(path, L'\\');
+  if (slash == nullptr) return;
+  *(slash + 1) = L'\0';
+  std::wstring guide = std::wstring(path) + L"KEYMAP.html";
+  ShellExecuteW(nullptr, L"open", guide.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+}
 }  // namespace
 
 CLangBarButton::CLangBarButton(CTextService* owner)
@@ -87,6 +104,10 @@ STDMETHODIMP CLangBarButton::InitMenu(ITfMenu* pMenu) {
   pMenu->AddMenuItem(kMenuEnglish,
                      enabled ? 0 : TF_LBMENUF_RADIOCHECKED, nullptr, nullptr,
                      L"English", 7, nullptr);
+  pMenu->AddMenuItem(0, TF_LBMENUF_SEPARATOR, nullptr, nullptr, nullptr, 0,
+                     nullptr);
+  pMenu->AddMenuItem(kMenuGuide, 0, nullptr, nullptr, L"Typing guide…", 13,
+                     nullptr);
   return S_OK;
 }
 
@@ -96,6 +117,8 @@ STDMETHODIMP CLangBarButton::OnMenuSelect(UINT wID) {
     owner_->SetEnabled(true);
   else if (wID == kMenuEnglish)
     owner_->SetEnabled(false);
+  else if (wID == kMenuGuide)
+    OpenTypingGuide();
   return S_OK;
 }
 
