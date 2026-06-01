@@ -15,4 +15,10 @@ namespace bnphonetic {
 // This function is pure and has no Windows/COM dependencies.
 std::string Transliterate(const std::string& latin);
 
+// Returns true if `c` is a character the transliterator consumes as phonetic
+// input (an ASCII letter, digit, or one of the sign keys such as '.', '^',
+// ':'). The input method uses this to decide which keystrokes to buffer into
+// the current word vs. let through to the application.
+bool IsPhoneticInput(char c);
+
 }  // namespace bnphonetic

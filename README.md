@@ -32,7 +32,9 @@ scripts\package.bat
 Then right-click `dist\install.ps1` → **Run with PowerShell** (it self-elevates).
 See [installer/README.md](installer/README.md) for details and uninstall.
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the design and full roadmap.
+See [docs/KEYMAP.md](docs/KEYMAP.md) for the full typing guide (every letter,
+sign, digit, and conjunct), and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for
+the design and roadmap.
 
 ## Build
 

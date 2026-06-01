@@ -40,6 +40,10 @@ int main() {
   // Combining marks and the vocalic vowel ঋ.
   Check("cha^d", "চাঁদ");   // chandrabindu
   Check("rriSi", "ঋষি");    // ঋ + ষ + ি
+  Check("a^", "আঁ");        // chandrabindu after independent vowel
+  Check("a:", "আঃ");        // visarga
+  Check(".", "।");          // dari (Bangla full stop)
+  Check("Sesh.", "ষেশ।");   // word followed by dari
 
   // Inherent vowel 'o' after a consonant produces no kar; following vowel is
   // independent.

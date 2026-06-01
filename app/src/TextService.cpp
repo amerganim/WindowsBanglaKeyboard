@@ -19,16 +19,24 @@ std::wstring Utf8ToUtf16(const std::string& s) {
   return w;
 }
 
-// True for keys we accumulate into the phonetic buffer. The engine is
-// case-sensitive, so letters carry their case from Shift.
-bool IsComposingKey(WPARAM vk) {
-  return (vk >= 'A' && vk <= 'Z') || (vk >= '0' && vk <= '9');
-}
-
-char ToLatin(WPARAM vk, bool shift) {
-  if (vk >= 'A' && vk <= 'Z')
-    return shift ? static_cast<char>(vk) : static_cast<char>(vk - 'A' + 'a');
-  return static_cast<char>(vk);  // digits
+// Translate a key event to the ASCII character it produces on the user's
+// keyboard layout (respecting Shift/CapsLock, etc.), or 0 if it is not a
+// single printable ASCII character. The engine is case-sensitive, so this also
+// gives us correct upper/lower case and sign keys ('^', ':', '.').
+char TranslateChar(WPARAM vk, LPARAM lParam) {
+  BYTE kbState[256];
+  if (!GetKeyboardState(kbState)) return 0;
+  const UINT scan = static_cast<UINT>((lParam >> 16) & 0xFF);
+  const HKL layout = GetKeyboardLayout(0);
+  WCHAR buf[8] = {0};
+  int n = ToUnicodeEx(static_cast<UINT>(vk), scan, kbState, buf, 8, 0, layout);
+  if (n < 0) {
+    // Dead key: call again to flush so the next key isn't corrupted.
+    ToUnicodeEx(static_cast<UINT>(vk), scan, kbState, buf, 8, 0, layout);
+    return 0;
+  }
+  if (n == 1 && buf[0] >= 0x20 && buf[0] < 0x7F) return static_cast<char>(buf[0]);
+  return 0;
 }
 
 }  // namespace
@@ -262,20 +270,20 @@ HRESULT CTextService::EndComposition(ITfContext* pic,
 // ---- ITfKeyEventSink ----
 STDMETHODIMP CTextService::OnSetFocus(BOOL /*fForeground*/) { return S_OK; }
 
-bool CTextService::ShouldEat(WPARAM vk) const {
-  if (!enabled_) return false;          // English mode: pass everything through
-  if (IsComposingKey(vk)) return true;  // letters/digits
+bool CTextService::ShouldEat(WPARAM vk, char ch) const {
+  if (!enabled_) return false;  // English mode: pass everything through
   if (vk == VK_BACK) return !buffer_.empty();
   // Space/Enter are consumed only while a word is composing, so they commit it
   // (and outside composition they behave normally for the app).
   if (vk == VK_SPACE || vk == VK_RETURN) return IsComposing();
-  return false;
+  // Any character the engine treats as phonetic input (letters, digits, signs).
+  return ch != 0 && bnphonetic::IsPhoneticInput(ch);
 }
 
 STDMETHODIMP CTextService::OnTestKeyDown(ITfContext* /*pic*/, WPARAM wParam,
-                                         LPARAM /*lParam*/, BOOL* pfEaten) {
+                                         LPARAM lParam, BOOL* pfEaten) {
   if (pfEaten == nullptr) return E_INVALIDARG;
-  *pfEaten = ShouldEat(wParam);
+  *pfEaten = ShouldEat(wParam, TranslateChar(wParam, lParam));
   return S_OK;
 }
 
@@ -286,8 +294,9 @@ STDMETHODIMP CTextService::OnTestKeyUp(ITfContext* /*pic*/, WPARAM /*wParam*/,
 }
 
 STDMETHODIMP CTextService::OnKeyDown(ITfContext* pic, WPARAM wParam,
-                                     LPARAM /*lParam*/, BOOL* pfEaten) {
-  const bool eaten = (pic != nullptr) && ShouldEat(wParam);
+                                     LPARAM lParam, BOOL* pfEaten) {
+  const char ch = TranslateChar(wParam, lParam);
+  const bool eaten = (pic != nullptr) && ShouldEat(wParam, ch);
   if (pfEaten) *pfEaten = eaten ? TRUE : FALSE;
 
   if (!eaten) {
@@ -296,11 +305,7 @@ STDMETHODIMP CTextService::OnKeyDown(ITfContext* pic, WPARAM wParam,
     return S_OK;
   }
 
-  if (IsComposingKey(wParam)) {
-    const bool shift = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
-    buffer_.push_back(ToLatin(wParam, shift));
-    UpdateComposition(pic);
-  } else if (wParam == VK_BACK) {
+  if (wParam == VK_BACK) {
     buffer_.pop_back();
     if (buffer_.empty())
       EndComposition(pic);
@@ -312,6 +317,10 @@ STDMETHODIMP CTextService::OnKeyDown(ITfContext* pic, WPARAM wParam,
   } else if (wParam == VK_RETURN) {
     // Commit the word; the Enter is consumed (press Enter again for a newline).
     EndComposition(pic);
+  } else {
+    // A phonetic input character: add it to the word and update the preview.
+    buffer_.push_back(ch);
+    UpdateComposition(pic);
   }
   return S_OK;
 }

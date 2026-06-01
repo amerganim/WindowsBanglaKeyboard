@@ -69,8 +69,9 @@ class CTextService : public ITfTextInputProcessorEx,
   bool IsComposing() const { return composition_ != nullptr; }
 
   // True if we will consume this key (kept identical between OnTestKeyDown and
-  // OnKeyDown, as TSF requires).
-  bool ShouldEat(WPARAM vk) const;
+  // OnKeyDown, as TSF requires). `ch` is the key's translated character (0 if
+  // none).
+  bool ShouldEat(WPARAM vk, char ch) const;
 
   // Language-bar button + preserved key.
   void AddLangBarButton();

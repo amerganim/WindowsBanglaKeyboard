@@ -48,10 +48,13 @@ tests contain Bangla string literals.
 #### Rule-set status & known limitations
 
 The current table is a curated, self-consistent Avro-style subset that passes
-the test suite. Covered: consonants & conjuncts, dependent/independent vowels
-incl. `ঋ` (`rri`), **anusvara `ং` (`ng`)** vs. the velar-nasal letter
-**`ঙ` (`Ng`)**, chandrabindu `ঁ` (`^`), visarga `ঃ` (`:`), and Bangla digits.
-Reserved for the rule-set expansion:
+the test suite. Covered: consonants & conjuncts (incl. `ঞ` = `NG`), dependent/independent
+vowels incl. `ঋ` (`rri`), **anusvara `ং` (`ng`)** vs. the velar-nasal letter
+**`ঙ` (`Ng`)**, chandrabindu `ঁ` (`^`), visarga `ঃ` (`:`), dari `।` (`.`), and
+Bangla digits. The full typing guide is in [KEYMAP.md](KEYMAP.md). The input
+method buffers any character `IsPhoneticInput()` recognizes (translated from the
+keystroke via `ToUnicodeEx`), so the sign keys work in real apps too. Reserved
+for the rule-set expansion:
 
 - Disambiguating the `ng` digraph from a genuine `n` + `g` sequence.
 - ya-phala / ref / explicit-hasanta handling, khanda-ta `ৎ`, more diphthongs.

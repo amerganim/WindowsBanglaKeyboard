@@ -38,7 +38,8 @@ const std::unordered_map<std::string, Unit>& Table() {
       {"kh", {Kind::Consonant, "খ", ""}},
       {"g", {Kind::Consonant, "গ", ""}},
       {"gh", {Kind::Consonant, "ঘ", ""}},
-      {"Ng", {Kind::Consonant, "ঙ", ""}},  // velar-nasal *letter* ঙ
+      {"Ng", {Kind::Consonant, "ঙ", ""}},  // velar-nasal letter ঙ
+      {"NG", {Kind::Consonant, "ঞ", ""}},  // letter ঞ (ny)
       {"ch", {Kind::Consonant, "চ", ""}},
       {"chh", {Kind::Consonant, "ছ", ""}},
       {"j", {Kind::Consonant, "জ", ""}},
@@ -91,6 +92,7 @@ const std::unordered_map<std::string, Unit>& Table() {
       {"ng", {Kind::Direct, "ং", ""}},   // anusvara (e.g. বাংলা)
       {"^", {Kind::Direct, "ঁ", ""}},   // chandrabindu (e.g. চাঁদ)
       {":", {Kind::Direct, "ঃ", ""}},   // visarga
+      {".", {Kind::Direct, "।", ""}},   // dari (Bangla full stop)
 
       // ---- Digits ----
       {"0", {Kind::Direct, "০", ""}},
@@ -162,6 +164,13 @@ std::string Transliterate(const std::string& latin) {
   }
 
   return out;
+}
+
+bool IsPhoneticInput(char c) {
+  if (c >= 'a' && c <= 'z') return true;
+  if (c >= 'A' && c <= 'Z') return true;
+  if (c >= '0' && c <= '9') return true;
+  return c == '^' || c == ':' || c == '.';
 }
 
 }  // namespace bnphonetic

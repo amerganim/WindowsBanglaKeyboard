@@ -40,7 +40,7 @@ function Register-Dll([string]$regsvr, [string]$dll, [string]$label) {
 
 $AppName   = 'BanglaPhonetic'
 $Display   = 'Bangla Phonetic Keyboard'
-$Version   = '0.5.1'
+$Version   = '0.6.0'
 $Publisher = 'WindowsBanglaKeyboard'
 
 $src  = $PSScriptRoot
