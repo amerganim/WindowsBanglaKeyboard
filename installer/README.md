@@ -64,6 +64,25 @@ program** (a full Windows restart is not necessary). If an install ever fails it
 keeps the window open with the error and logs to
 `%TEMP%\BanglaPhonetic_install.log`.
 
+## FAQ
+
+**The keyboard reverts to English when I switch apps. Why?**
+That's standard Windows behaviour, not this software: Windows remembers a
+*separate* input method for **each application window**, so switching to another
+app restores that app's own last-used language. To make your choice apply
+everywhere instead, go to **Settings → Time & language → Typing → Advanced
+keyboard settings** and **untick "Let me use a different input method for each
+app window."** (Optionally set **"Override for default input method"** to
+*Bangla Phonetic*.) Within Bangla you can still toggle English with
+**Ctrl+Shift+B**.
+
+**Do I need to install a Bangla font?**
+No. Windows already includes a Bengali font (**Nirmala UI**, shipped since
+Windows 8) and renders Bengali automatically. This keyboard only produces
+Unicode text, so it bundles no fonts and needs none — it works out of the box on
+a normal Windows 8/10/11 PC. (Only rare, stripped-down or "N" editions might
+need the *Bengali Supplemental Fonts* optional Windows feature.)
+
 ## Notes
 
 - Administrator rights are required (the input method is registered
