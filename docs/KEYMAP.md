@@ -1,4 +1,4 @@
-# Bangla Phonetic — Key Map / Typing Guide
+# Amader Bangla Keyboard — Key Map / Typing Guide
 
 How to type each Bangla letter, sign, digit, and conjunct with this keyboard.
 

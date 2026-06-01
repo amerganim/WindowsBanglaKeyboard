@@ -36,7 +36,7 @@ STDMETHODIMP CDisplayAttributeInfo::GetGUID(GUID* pguid) {
 
 STDMETHODIMP CDisplayAttributeInfo::GetDescription(BSTR* pbstrDesc) {
   if (pbstrDesc == nullptr) return E_INVALIDARG;
-  *pbstrDesc = SysAllocString(L"Bangla Phonetic composing text");
+  *pbstrDesc = SysAllocString(L"Amader Bangla Keyboard composing text");
   return *pbstrDesc ? S_OK : E_OUTOFMEMORY;
 }
 

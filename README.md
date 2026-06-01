@@ -1,8 +1,8 @@
-# WindowsBanglaKeyboard
+# Amader Bangla Keyboard
 
 A Windows input method to type **Bangla phonetically** (e.g. `amar` → আমার).
-After installation you switch your input to "Bangla Phonetic" (Win+Space) and
-type romanized Bangla in any application.
+After installation you switch your input to "Amader Bangla Keyboard" (Win+Space)
+and type romanized Bangla in any application.
 
 Built as a **TSF Text Input Processor** (a native Windows input method) with a
 portable, unit-tested phonetic engine at its core.
@@ -22,8 +22,8 @@ portable, unit-tested phonetic engine at its core.
   Ctrl+Shift+B Bangla/English toggle (session-only; starts in Bangla).
 - ✅ **Phase 5 — installer** (`installer/`, `scripts\package.bat`): builds
   x64+x86 and stages `dist\` with self-elevating install/uninstall scripts.
-- ✅ **Typing guide**: installed as a Start Menu shortcut ("Bangla Phonetic
-  Typing Guide") and in the language-bar menu — a full key-map cheat sheet.
+- ✅ **Typing guide**: installed as a Start Menu shortcut ("Amader Bangla
+  Keyboard Typing Guide") and in the language-bar menu — a full key-map cheat sheet.
 - ✅ **Word suggestions**: an editable bundled dictionary (`dictionary.tsv`,
   ~275 words) + frequency-ranked candidate window that **learns** which words
   you pick (stored per-user in `%LOCALAPPDATA%\BanglaPhonetic\learned.tsv`).

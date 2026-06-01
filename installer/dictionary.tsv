@@ -1,4 +1,4 @@
-# Bangla Phonetic dictionary.  Format:  roman<TAB>bangla<TAB>freq
+# Amader Bangla Keyboard dictionary.  Format:  roman<TAB>bangla<TAB>freq
 # Lines starting with # are ignored. Higher freq = ranked earlier.
 # Edit/extend freely — it is loaded at runtime, no rebuild needed.
 # (A small built-in list ships inside the engine as a fallback.)

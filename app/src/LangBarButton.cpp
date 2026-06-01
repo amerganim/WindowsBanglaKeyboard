@@ -69,7 +69,7 @@ STDMETHODIMP CLangBarButton::GetInfo(TF_LANGBARITEMINFO* pInfo) {
   pInfo->dwStyle = TF_LBI_STYLE_BTN_BUTTON | TF_LBI_STYLE_SHOWNINTRAY;
   pInfo->ulSort = 0;
   StringCchCopyW(pInfo->szDescription, ARRAYSIZE(pInfo->szDescription),
-                 L"Bangla Phonetic");
+                 L"Amader Bangla Keyboard");
   return S_OK;
 }
 
@@ -84,7 +84,7 @@ STDMETHODIMP CLangBarButton::Show(BOOL /*fShow*/) { return S_OK; }
 STDMETHODIMP CLangBarButton::GetTooltipString(BSTR* pbstrToolTip) {
   if (pbstrToolTip == nullptr) return E_INVALIDARG;
   *pbstrToolTip =
-      SysAllocString(L"Bangla Phonetic — click or press Ctrl+Shift+B to toggle");
+      SysAllocString(L"Amader Bangla Keyboard — click or press Ctrl+Shift+B to toggle");
   return *pbstrToolTip ? S_OK : E_OUTOFMEMORY;
 }
 

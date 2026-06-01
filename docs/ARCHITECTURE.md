@@ -1,4 +1,4 @@
-# Windows Bangla Phonetic Keyboard — Architecture
+# Amader Bangla Keyboard — Architecture
 
 A Windows input method that lets you switch your input to **Bangla** and type
 **phonetically** (e.g. `amar` → আমার). It is built as a **TSF Text Input
@@ -106,7 +106,7 @@ drives a live TSF composition:
   `ITfSource` on the language bar / input indicator showing **বাং** vs **Eng**;
   left-click and its radio menu toggle the same mode, and it redraws via the
   advised `ITfLangBarItemSink`.
-- The toggle is **session-only**: activating the Bangla Phonetic input method
+- The toggle is **session-only**: activating the Amader Bangla Keyboard input method
   always starts in Bangla mode (it is not persisted, so switching into the IME
   never lands you in a stuck "English" state).
 

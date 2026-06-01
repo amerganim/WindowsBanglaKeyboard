@@ -22,7 +22,7 @@ DEFINE_GUID(c_guidLangBarItem, 0x5d7e0c19, 0x8a34, 0x4b2f, 0x91, 0xd6, 0x3e,
 DEFINE_GUID(c_guidToggleKey, 0x9b4c2e07, 0x1f58, 0x4a3d, 0x86, 0xb0, 0x7c, 0x2d,
             0x9e, 0x4f, 0x5a, 0x61);
 
-const WCHAR kProfileDescription[] = L"Bangla Phonetic";
+const WCHAR kProfileDescription[] = L"Amader Bangla Keyboard";
 
 HINSTANCE g_hInst = nullptr;
 LONG g_cRefDll = 0;

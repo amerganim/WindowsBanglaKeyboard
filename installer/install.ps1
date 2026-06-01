@@ -1,5 +1,5 @@
 <#
-  Bangla Phonetic Keyboard - installer.
+  Amader Bangla Keyboard - installer.
 
   Copies the input-method DLLs to Program Files, registers them with Windows
   (both 64-bit and 32-bit so all apps can use them), and adds an entry to
@@ -34,8 +34,8 @@ function Register-Dll([string]$regsvr, [string]$dll, [string]$label) {
 }
 
 $AppName   = 'BanglaPhonetic'
-$Display   = 'Bangla Phonetic Keyboard'
-$Version   = '0.9.0'
+$Display   = 'Amader Bangla Keyboard'
+$Version   = '0.9.1'
 $Publisher = 'WindowsBanglaKeyboard'
 
 $src  = $PSScriptRoot
@@ -86,12 +86,15 @@ try {
     Set-ItemProperty $arp NoRepair 1 -Type DWord
 
     # --- Start Menu shortcut to the typing guide (discoverable tutorial) ---
+    $programs = [Environment]::GetFolderPath('CommonPrograms')
+    # Remove the legacy folder name from earlier versions, if present.
+    $legacy = Join-Path $programs 'Bangla Phonetic'
+    if (Test-Path $legacy) { Remove-Item $legacy -Recurse -Force -ErrorAction SilentlyContinue }
     if (Test-Path $guide) {
-        $programs = [Environment]::GetFolderPath('CommonPrograms')
-        $folder = Join-Path $programs 'Bangla Phonetic'
+        $folder = Join-Path $programs 'Amader Bangla Keyboard'
         New-Item -ItemType Directory -Force -Path $folder | Out-Null
         $ws = New-Object -ComObject WScript.Shell
-        $lnk = $ws.CreateShortcut((Join-Path $folder 'Bangla Phonetic Typing Guide.lnk'))
+        $lnk = $ws.CreateShortcut((Join-Path $folder 'Amader Bangla Keyboard Typing Guide.lnk'))
         $lnk.TargetPath = $guide
         $lnk.Description = 'How to type Bangla phonetically (key map / tutorial)'
         $lnk.Save()
@@ -108,9 +111,9 @@ try {
 
     Write-Host ''
     Write-Host "$Display $Version installed (no restart needed)." -ForegroundColor Green
-    Write-Host 'Switch input methods with Win+Space (look for "Bangla Phonetic").'
+    Write-Host 'Switch input methods with Win+Space (look for "Amader Bangla Keyboard").'
     Write-Host 'Toggle Bangla/English with Ctrl+Shift+B.'
-    Write-Host 'Typing guide: Start Menu > Bangla Phonetic > "Bangla Phonetic Typing Guide".'
+    Write-Host 'Typing guide: Start Menu > Amader Bangla Keyboard > "Amader Bangla Keyboard Typing Guide".'
     Write-Host 'If an app was already open, close and reopen it to pick up this version.'
     Write-Host 'If it does not appear, add the Bengali language under Settings > Time and language > Language.'
 } catch {

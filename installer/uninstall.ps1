@@ -1,5 +1,5 @@
 <#
-  Bangla Phonetic Keyboard - uninstaller.
+  Amader Bangla Keyboard - uninstaller.
 
   Unregisters the input-method DLLs, removes the Add/Remove Programs entry, and
   deletes the installed files. Requires administrator rights and self-elevates.
@@ -29,7 +29,7 @@ $regSys  = Join-Path $env:WinDir 'System32\regsvr32.exe'
 $regWow  = Join-Path $env:WinDir 'SysWOW64\regsvr32.exe'
 
 try {
-    Write-Host "Uninstalling Bangla Phonetic Keyboard from $dest"
+    Write-Host "Uninstalling Amader Bangla Keyboard from $dest"
 
     # --- unregister every installed DLL (any build) ---
     Get-ChildItem $dest -Filter 'BanglaPhonetic_x64*.dll' -ErrorAction SilentlyContinue |
@@ -46,8 +46,10 @@ try {
     if (Test-Path $cfg) { Remove-Item $cfg -Recurse -Force }
 
     # --- remove the Start Menu shortcut folder ---
-    $startFolder = Join-Path ([Environment]::GetFolderPath('CommonPrograms')) 'Bangla Phonetic'
-    if (Test-Path $startFolder) { Remove-Item $startFolder -Recurse -Force -ErrorAction SilentlyContinue }
+    foreach ($sf in @('Amader Bangla Keyboard', 'Bangla Phonetic')) {
+        $startFolder = Join-Path ([Environment]::GetFolderPath('CommonPrograms')) $sf
+        if (Test-Path $startFolder) { Remove-Item $startFolder -Recurse -Force -ErrorAction SilentlyContinue }
+    }
 
     # --- delete the DLLs (best effort) ---
     # A loaded DLL can't be deleted yet; Windows removes it after the next
@@ -60,7 +62,7 @@ try {
     }
 
     Write-Host ''
-    Write-Host 'Bangla Phonetic Keyboard uninstalled (registration removed).' -ForegroundColor Green
+    Write-Host 'Amader Bangla Keyboard uninstalled (registration removed).' -ForegroundColor Green
     if ($locked) {
         Write-Host 'Some DLL files are still loaded and will be removed after you sign out or restart.' -ForegroundColor Yellow
     }

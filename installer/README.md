@@ -1,4 +1,4 @@
-# Bangla Phonetic Keyboard — install / uninstall
+# Amader Bangla Keyboard — install / uninstall
 
 ## Build the package
 
@@ -35,14 +35,14 @@ both 64-bit and 32-bit apps, and adds an **Apps & features** entry.
 
 After installing:
 
-- Switch input methods with **Win+Space** and pick **"Bangla Phonetic"**.
+- Switch input methods with **Win+Space** and pick **"Amader Bangla Keyboard"**.
 - Toggle Bangla/English with **Ctrl+Shift+B**; the language bar shows **বাং / Eng**.
 - If it does not appear, add the **Bengali** language under
   *Settings → Time & language → Language & region*.
 
 ## Uninstall
 
-Use **Apps & features → Bangla Phonetic Keyboard → Uninstall**, or run
+Use **Apps & features → Amader Bangla Keyboard → Uninstall**, or run
 `uninstall.ps1` from the install folder. It unregisters the DLLs, removes the
 config and the Apps entry, and deletes the files (any DLL still loaded is
 removed on next sign-out/restart).
@@ -73,7 +73,7 @@ app restores that app's own last-used language. To make your choice apply
 everywhere instead, go to **Settings → Time & language → Typing → Advanced
 keyboard settings** and **untick "Let me use a different input method for each
 app window."** (Optionally set **"Override for default input method"** to
-*Bangla Phonetic*.) Within Bangla you can still toggle English with
+*Amader Bangla Keyboard*.) Within Bangla you can still toggle English with
 **Ctrl+Shift+B**.
 
 **Do I need to install a Bangla font?**
