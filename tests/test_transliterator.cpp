@@ -55,6 +55,15 @@ int main() {
   Check("k`z", "ক্য");      // ya-phala
   Check("t`", "ৎ");         // khanda-ta
 
+  // Capital vowels render as kar after a consonant (engine is correct; the
+  // app must not commit the word when Shift is pressed).
+  Check("tU", "তূ");
+  Check("tO", "তো");
+
+  // 'w' as bo-phola via the conjunct mechanism.
+  Check("swopno", "স্বপ্ন");
+  Check("bishwas", "বিশ্বাস");
+
   // Inherent vowel 'o' after a consonant produces no kar; following vowel is
   // independent.
   Check("boi", "বই");

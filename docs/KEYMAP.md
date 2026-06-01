@@ -60,6 +60,9 @@ Special consonant forms:
 > Note: `j` = জ and `z` = য are different letters. `y`/`Y` = য় (the
 > semivowel, as in `noy` → নয়).
 
+> `w` = ব, used mainly to form the **bo-phola** (্ব) in conjuncts:
+> `swopno` → স্বপ্ন, `bishwas` → বিশ্বাস.
+
 ---
 
 ## Signs

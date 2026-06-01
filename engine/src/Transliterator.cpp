@@ -58,6 +58,7 @@ const std::unordered_map<std::string, Unit>& Table() {
       {"ph", {Kind::Consonant, "ফ", ""}},
       {"f", {Kind::Consonant, "ফ", ""}},
       {"b", {Kind::Consonant, "ব", ""}},
+      {"w", {Kind::Consonant, "ব", ""}},  // bo-phola use: `swopno` -> স্বপ্ন
       {"bh", {Kind::Consonant, "ভ", ""}},
       {"v", {Kind::Consonant, "ভ", ""}},
       {"m", {Kind::Consonant, "ম", ""}},

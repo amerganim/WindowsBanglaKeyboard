@@ -39,6 +39,22 @@ char TranslateChar(WPARAM vk, LPARAM lParam) {
   return 0;
 }
 
+// Modifier / lock keys produce no character and must never disturb an
+// in-progress composition (pressing Shift to type a capital vowel must not
+// commit the word).
+bool IsModifierKey(WPARAM vk) {
+  switch (vk) {
+    case VK_SHIFT: case VK_LSHIFT: case VK_RSHIFT:
+    case VK_CONTROL: case VK_LCONTROL: case VK_RCONTROL:
+    case VK_MENU: case VK_LMENU: case VK_RMENU:
+    case VK_CAPITAL: case VK_NUMLOCK: case VK_SCROLL:
+    case VK_LWIN: case VK_RWIN:
+      return true;
+    default:
+      return false;
+  }
+}
+
 }  // namespace
 
 CTextService::CTextService()
@@ -308,6 +324,10 @@ STDMETHODIMP CTextService::OnTestKeyUp(ITfContext* /*pic*/, WPARAM /*wParam*/,
 
 STDMETHODIMP CTextService::OnKeyDown(ITfContext* pic, WPARAM wParam,
                                      LPARAM lParam, BOOL* pfEaten) {
+  if (pfEaten) *pfEaten = FALSE;
+  // Never let a bare modifier/lock key touch the composition.
+  if (IsModifierKey(wParam)) return S_OK;
+
   const char ch = TranslateChar(wParam, lParam);
   const bool eaten = (pic != nullptr) && ShouldEat(wParam, ch);
   if (pfEaten) *pfEaten = eaten ? TRUE : FALSE;
