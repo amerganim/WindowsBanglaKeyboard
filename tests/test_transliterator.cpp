@@ -3,8 +3,10 @@
 
 #include "bnphonetic/Transliterator.h"
 
+#include <algorithm>
 #include <iostream>
 #include <string>
+#include <vector>
 
 namespace {
 
@@ -20,6 +22,37 @@ void Check(const std::string& input, const std::string& expected) {
               << "\"  (expected \"" << expected << "\")\n";
   } else {
     std::cout << "ok  : \"" << input << "\" -> \"" << got << "\"\n";
+  }
+}
+
+// Suggestion checks.
+bool Contains(const std::vector<std::string>& v, const std::string& s) {
+  return std::find(v.begin(), v.end(), s) != v.end();
+}
+
+void CheckFirst(const std::string& prefix, const std::string& expected) {
+  ++g_total;
+  auto v = bnphonetic::Suggest(prefix);
+  if (v.empty() || v[0] != expected) {
+    ++g_failures;
+    std::cerr << "FAIL: Suggest(\"" << prefix << "\")[0] = \""
+              << (v.empty() ? std::string("<none>") : v[0])
+              << "\"  (expected \"" << expected << "\")\n";
+  } else {
+    std::cout << "ok  : Suggest(\"" << prefix << "\")[0] -> \"" << v[0] << "\"\n";
+  }
+}
+
+void CheckSuggests(const std::string& prefix, const std::string& expected) {
+  ++g_total;
+  auto v = bnphonetic::Suggest(prefix);
+  if (!Contains(v, expected)) {
+    ++g_failures;
+    std::cerr << "FAIL: Suggest(\"" << prefix << "\") does not contain \""
+              << expected << "\"\n";
+  } else {
+    std::cout << "ok  : Suggest(\"" << prefix << "\") contains \"" << expected
+              << "\"\n";
   }
 }
 
@@ -82,6 +115,20 @@ int main() {
 
   // Unknown characters (space/punctuation) pass through and reset context.
   Check("ami tumi", "আমি তুমি");
+
+  // Suggestions: element 0 is always the literal transliteration; dictionary
+  // words sharing the prefix follow.
+  CheckFirst("ami", "আমি");
+  CheckSuggests("ama", "আমার");
+  CheckSuggests("ama", "আমাকে");
+  CheckSuggests("bhal", "ভালো");
+  CheckSuggests("bhal", "ভালোবাসা");
+  CheckSuggests("dhonnobad", "ধন্যবাদ");
+  if (!bnphonetic::Suggest("").empty()) {
+    ++g_failures;
+    std::cerr << "FAIL: Suggest(\"\") should be empty\n";
+  }
+  ++g_total;
 
   std::cout << "\n" << (g_total - g_failures) << "/" << g_total
             << " checks passed\n";

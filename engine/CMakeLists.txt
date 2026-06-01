@@ -2,6 +2,7 @@
 # can be unit-tested on its own and reused by the TIP, the test harness, etc.
 add_library(bnphonetic STATIC
   src/Transliterator.cpp
+  src/Suggest.cpp
 )
 
 target_include_directories(bnphonetic PUBLIC

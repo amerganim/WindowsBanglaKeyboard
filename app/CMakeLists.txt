@@ -8,6 +8,7 @@ add_library(BanglaPhonetic SHARED
   src/TextService.cpp
   src/DisplayAttribute.cpp
   src/LangBarButton.cpp
+  src/CandidateWindow.cpp
   src/Register.cpp
   BanglaPhonetic.def
 )
@@ -22,6 +23,7 @@ target_link_libraries(BanglaPhonetic PRIVATE
   advapi32
   user32
   shell32
+  gdi32
 )
 
 set_target_properties(BanglaPhonetic PROPERTIES

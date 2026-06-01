@@ -140,9 +140,12 @@ x86 the same way: `scripts\build.bat x86 "-DBUILD_TIP=ON"`.
   underlined preview, commit on space/enter, backspace editing. Remaining:
   live-register + test in apps; English passthrough toggle.
 - **Phase 4 — UX** ✅ (in progress) — language-bar button (বাং/Eng), Ctrl+Shift+B
-  mode toggle, and a typing guide (Start Menu shortcut + language-bar "Typing
-  guide…" menu item opening the bundled `KEYMAP.html`). Remaining:
-  candidate/suggestion window, fuller settings UI, custom-rule editing.
+  mode toggle, a typing guide (Start Menu shortcut + language-bar "Typing guide…"
+  menu item opening the bundled `KEYMAP.html`), and a **word-suggestion candidate
+  window**: the engine's `Suggest()` (bundled, frequency-ranked dictionary in
+  `engine/src/Suggest.cpp`) feeds a no-focus popup (`CandidateWindow`, positioned
+  via `ITfContextView::GetTextExt`); ↓/↑/Tab select, Enter/Space commit, Esc
+  dismisses. Remaining: bigger dictionary, learned frequencies, settings UI.
 - **Phase 5 — installer** ✅ — `scripts\package.bat` builds x64+x86 and stages
   `dist\`; self-elevating `install.ps1`/`uninstall.ps1` copy to Program Files,
   register both DLLs (System32 + SysWOW64 `regsvr32`), and add an Apps & features

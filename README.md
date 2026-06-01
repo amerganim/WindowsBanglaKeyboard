@@ -24,7 +24,9 @@ portable, unit-tested phonetic engine at its core.
   x64+x86 and stages `dist\` with self-elevating install/uninstall scripts.
 - ✅ **Typing guide**: installed as a Start Menu shortcut ("Bangla Phonetic
   Typing Guide") and in the language-bar menu — a full key-map cheat sheet.
-- ⏳ Next: code signing; candidate/suggestion window.
+- ✅ **Word suggestions**: a bundled dictionary + frequency-ranked candidate
+  window (↓/↑/Tab to pick, Enter/Space to commit, Esc to dismiss).
+- ⏳ Next: code signing; bigger dictionary; learning frequencies.
 
 ## Install
 

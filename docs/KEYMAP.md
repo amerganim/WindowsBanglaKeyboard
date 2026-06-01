@@ -119,9 +119,20 @@ Type a backtick `` ` `` to force a hasanta (্) between two consonants:
 
 ---
 
+## Word suggestions
+
+While you type, a small list of Bangla word suggestions may appear under the
+text. Use it (optional):
+
+- **↓ / ↑** or **Tab** — move the highlight
+- **Enter** — commit the highlighted word (**Space** commits it and adds a space)
+- **Esc** — dismiss the list and keep your typed spelling
+
+If you ignore it and just keep typing/press Space, you always get exactly what
+you typed.
+
 ## Not yet supported (planned)
 
-- Word suggestions / a candidate window.
 - Disambiguating the `ng` digraph (anusvara) from a literal `n`+`g`, and a few
   rare ligatures.
 

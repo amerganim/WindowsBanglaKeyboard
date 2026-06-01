@@ -64,7 +64,9 @@ CTextService::CTextService()
       composition_(nullptr),
       display_attribute_atom_(TF_INVALID_GUIDATOM),
       langbar_button_(nullptr),
-      enabled_(true) {
+      enabled_(true),
+      caret_rect_{},
+      caret_rect_valid_(false) {
   DllAddRef();
 }
 
@@ -139,6 +141,7 @@ STDMETHODIMP CTextService::ActivateEx(ITfThreadMgr* ptim, TfClientId tid,
 }
 
 STDMETHODIMP CTextService::Deactivate() {
+  candidates_.Hide();
   RemoveLangBarButton();
   PreserveToggleKey(false);
 
@@ -225,6 +228,20 @@ HRESULT CTextService::UpdateComposition(ITfContext* pic) {
           pic->SetSelection(ec, 1, &sel);
           caret->Release();
         }
+
+        // Capture the on-screen rect of the composition to position the
+        // candidate window beneath it.
+        caret_rect_valid_ = false;
+        ITfContextView* view = nullptr;
+        if (SUCCEEDED(pic->GetActiveView(&view)) && view) {
+          RECT rc;
+          BOOL clipped = FALSE;
+          if (SUCCEEDED(view->GetTextExt(ec, range, &rc, &clipped))) {
+            caret_rect_ = rc;
+            caret_rect_valid_ = true;
+          }
+          view->Release();
+        }
         range->Release();
         return S_OK;
       });
@@ -234,22 +251,30 @@ HRESULT CTextService::UpdateComposition(ITfContext* pic) {
   pic->RequestEditSession(client_id_, session,
                           TF_ES_SYNC | TF_ES_READWRITE, &hr_session);
   session->Release();
+
+  RefreshCandidates(pic);
   return hr_session;
 }
 
 HRESULT CTextService::EndComposition(ITfContext* pic,
-                                     const std::wstring& trailing) {
+                                     const std::wstring& trailing,
+                                     const std::wstring& override_text) {
   buffer_.clear();
+  candidates_.Hide();
   if (composition_ == nullptr || pic == nullptr) return S_OK;
 
   CEditSession* session = new (std::nothrow) CEditSession(
-      [this, pic, trailing](TfEditCookie ec) -> HRESULT {
+      [this, pic, trailing, override_text](TfEditCookie ec) -> HRESULT {
         if (composition_) {
-          // Move the caret to the END of the composition before finalizing, so
-          // anything typed next (a committed sign, or a passed-through key) lands
-          // after the word rather than before it.
           ITfRange* end = nullptr;
           if (SUCCEEDED(composition_->GetRange(&end)) && end) {
+            // Replace the composing text with the chosen suggestion, if any.
+            if (!override_text.empty()) {
+              end->SetText(ec, 0, override_text.c_str(),
+                           static_cast<LONG>(override_text.size()));
+            }
+            // Move the caret to the END so anything typed next lands after the
+            // word rather than before it.
             end->Collapse(ec, TF_ANCHOR_END);
             TF_SELECTION sel;
             sel.range = end;
@@ -296,11 +321,43 @@ HRESULT CTextService::EndComposition(ITfContext* pic,
   return hr_session;
 }
 
+void CTextService::RefreshCandidates(ITfContext* /*pic*/) {
+  suggestions_ = bnphonetic::Suggest(buffer_);
+  // Only show the list when there are real alternatives beyond the literal
+  // transliteration (element 0).
+  if (suggestions_.size() > 1 && caret_rect_valid_) {
+    std::vector<std::wstring> items;
+    items.reserve(suggestions_.size());
+    for (const std::string& s : suggestions_) items.push_back(Utf8ToUtf16(s));
+    candidates_.Show(items, caret_rect_.left, caret_rect_.bottom);
+  } else {
+    candidates_.Hide();
+  }
+}
+
+HRESULT CTextService::CommitSelected(ITfContext* pic,
+                                     const std::wstring& trailing) {
+  const int sel = candidates_.Selected();
+  std::wstring override_text;
+  if (sel > 0 && sel < static_cast<int>(suggestions_.size())) {
+    override_text = Utf8ToUtf16(suggestions_[sel]);  // a chosen dictionary word
+  }
+  return EndComposition(pic, trailing, override_text);
+}
+
 // ---- ITfKeyEventSink ----
 STDMETHODIMP CTextService::OnSetFocus(BOOL /*fForeground*/) { return S_OK; }
 
 bool CTextService::ShouldEat(WPARAM vk, char ch) const {
   if (!enabled_) return false;  // English mode: pass everything through
+  // While the candidate window is open we also consume the navigation keys.
+  if (candidates_.IsVisible()) {
+    switch (vk) {
+      case VK_DOWN: case VK_UP: case VK_TAB: case VK_ESCAPE:
+        return true;
+      default: break;
+    }
+  }
   if (vk == VK_BACK) return !buffer_.empty();
   // Space/Enter are consumed only while a word is composing, so they commit it
   // (and outside composition they behave normally for the app).
@@ -327,6 +384,35 @@ STDMETHODIMP CTextService::OnKeyDown(ITfContext* pic, WPARAM wParam,
   if (pfEaten) *pfEaten = FALSE;
   // Never let a bare modifier/lock key touch the composition.
   if (IsModifierKey(wParam)) return S_OK;
+
+  // Candidate-window navigation takes priority while it is open.
+  if (candidates_.IsVisible()) {
+    switch (wParam) {
+      case VK_DOWN:
+      case VK_TAB:
+        candidates_.Move(1);
+        if (pfEaten) *pfEaten = TRUE;
+        return S_OK;
+      case VK_UP:
+        candidates_.Move(-1);
+        if (pfEaten) *pfEaten = TRUE;
+        return S_OK;
+      case VK_ESCAPE:
+        candidates_.Hide();
+        if (pfEaten) *pfEaten = TRUE;
+        return S_OK;
+      case VK_SPACE:
+        CommitSelected(pic, L" ");
+        if (pfEaten) *pfEaten = TRUE;
+        return S_OK;
+      case VK_RETURN:
+        CommitSelected(pic, std::wstring());
+        if (pfEaten) *pfEaten = TRUE;
+        return S_OK;
+      default:
+        break;  // typing / backspace falls through and refreshes the list
+    }
+  }
 
   const char ch = TranslateChar(wParam, lParam);
   const bool eaten = (pic != nullptr) && ShouldEat(wParam, ch);
@@ -385,6 +471,7 @@ STDMETHODIMP CTextService::OnCompositionTerminated(
     composition_ = nullptr;
   }
   buffer_.clear();
+  candidates_.Hide();
   return S_OK;
 }
 

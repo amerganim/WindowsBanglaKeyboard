@@ -1,7 +1,9 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
+#include "CandidateWindow.h"
 #include "Globals.h"
 
 class CLangBarButton;
@@ -63,10 +65,18 @@ class CTextService : public ITfTextInputProcessorEx,
 
   // Composition lifecycle (each runs inside an edit session).
   HRESULT UpdateComposition(ITfContext* pic);  // start if needed, set text
-  // Finalize the composition (keeping the committed text) and optionally insert
-  // a trailing string (e.g. a space) right after it.
-  HRESULT EndComposition(ITfContext* pic, const std::wstring& trailing = std::wstring());
+  // Finalize the composition (keeping the committed text). Optionally replace
+  // the committed text with `override_text` (used to commit a chosen
+  // suggestion) and/or insert `trailing` (e.g. a space) right after it.
+  HRESULT EndComposition(ITfContext* pic,
+                         const std::wstring& trailing = std::wstring(),
+                         const std::wstring& override_text = std::wstring());
   bool IsComposing() const { return composition_ != nullptr; }
+
+  // Recompute suggestions for the current buffer and show/hide the candidate
+  // window near the caret; commit the currently selected suggestion.
+  void RefreshCandidates(ITfContext* pic);
+  HRESULT CommitSelected(ITfContext* pic, const std::wstring& trailing);
 
   // True if we will consume this key (kept identical between OnTestKeyDown and
   // OnKeyDown, as TSF requires). `ch` is the key's translated character (0 if
@@ -86,4 +96,9 @@ class CTextService : public ITfTextInputProcessorEx,
   CLangBarButton* langbar_button_;
   bool enabled_;        // true = transliterate to Bangla; false = pass English
   std::string buffer_;  // accumulated Latin keys for the current word
+
+  CandidateWindow candidates_;
+  std::vector<std::string> suggestions_;  // UTF-8, index-aligned with the window
+  RECT caret_rect_;                        // screen rect of the composition
+  bool caret_rect_valid_;
 };
