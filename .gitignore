@@ -4,6 +4,7 @@
 /build-x86/
 /out/
 /dist/
+/release/
 *.obj
 *.lib
 *.dll

@@ -1,9 +1,10 @@
 <#
   Amader Bangla Keyboard - installer.
 
-  Copies the input-method DLLs to Program Files, registers them with Windows
-  (both 64-bit and 32-bit so all apps can use them), and adds an entry to
-  "Apps & features". Requires administrator rights and self-elevates.
+  Copies the input-method DLLs to Program Files and registers the ones that
+  match this PC's architecture so all apps can use them (native + 32-bit on
+  x64; native ARM64 + 32-bit on ARM64 Windows), and adds an "Apps & features"
+  entry. Requires administrator rights and self-elevates.
 
   Each build is installed under a content-hashed filename, so a previously
   loaded DLL never has to be overwritten -- updating does NOT require a restart.
@@ -25,17 +26,31 @@ if (-not $principal.IsInRole([Security.Principal.WindowsBuiltinRole]::Administra
     return
 }
 
-function Register-Dll([string]$regsvr, [string]$dll, [string]$label) {
-    $p = Start-Process -FilePath $regsvr -ArgumentList @('/s', "`"$dll`"") `
+# Copy a component DLL under a content-hashed name (so a loaded old build is
+# never overwritten) and register it with the matching-architecture regsvr32.
+# Returns the installed target path, or $null if the source isn't present.
+function Install-Component([string]$srcName, [string]$regsvr, [string]$label) {
+    $srcPath = Join-Path $script:src $srcName
+    if (-not (Test-Path $srcPath)) { return $null }
+    if (-not (Test-Path $regsvr)) {
+        Write-Warning "regsvr32 for $label not found; skipping $srcName."
+        return $null
+    }
+    $hash = (Get-FileHash -Algorithm SHA256 -Path $srcPath).Hash.Substring(0, 8).ToLower()
+    $base = [IO.Path]::GetFileNameWithoutExtension($srcName)  # e.g. BanglaPhonetic_x64
+    $target = Join-Path $script:dest "${base}_${hash}.dll"
+    if (-not (Test-Path $target)) { Copy-Item $srcPath $target }
+    $p = Start-Process -FilePath $regsvr -ArgumentList @('/s', "`"$target`"") `
                        -Wait -PassThru -WindowStyle Hidden
     if ($p.ExitCode -ne 0) {
         throw "Registering the $label DLL failed (regsvr32 exit $($p.ExitCode))."
     }
+    return $target
 }
 
 $AppName   = 'BanglaPhonetic'
 $Display   = 'Amader Bangla Keyboard'
-$Version   = '0.9.1'
+$Version   = '0.9.2'
 $Publisher = 'WindowsBanglaKeyboard'
 
 $src  = $PSScriptRoot
@@ -45,33 +60,43 @@ $log  = Join-Path $env:TEMP 'BanglaPhonetic_install.log'
 try { Start-Transcript -Path $log -Force | Out-Null } catch {}
 
 try {
-    $dllX64src = Join-Path $src 'BanglaPhonetic_x64.dll'
-    $dllX86src = Join-Path $src 'BanglaPhonetic_x86.dll'
-    if (-not (Test-Path $dllX64src)) { throw "Missing $dllX64src - run scripts\package.bat first." }
-    $haveX86 = Test-Path $dllX86src
-
-    # Content hash -> unique, stable filename per build. A new build gets a new
-    # name (no overwrite of a loaded DLL); reinstalling the same build reuses the
-    # existing file as-is.
-    $hash = (Get-FileHash -Algorithm SHA256 -Path $dllX64src).Hash.Substring(0, 8).ToLower()
-    $dllX64 = Join-Path $dest "BanglaPhonetic_x64_$hash.dll"
-    $dllX86 = Join-Path $dest "BanglaPhonetic_x86_$hash.dll"
-
     Write-Host "Installing $Display $Version to $dest"
     New-Item -ItemType Directory -Force -Path $dest | Out-Null
-    if (-not (Test-Path $dllX64)) { Copy-Item $dllX64src $dllX64 }
-    if ($haveX86 -and -not (Test-Path $dllX86)) { Copy-Item $dllX86src $dllX86 }
     Copy-Item (Join-Path $src 'uninstall.ps1') (Join-Path $dest 'uninstall.ps1') -Force -ErrorAction SilentlyContinue
     $guide = Join-Path $dest 'KEYMAP.html'
     Copy-Item (Join-Path $src 'KEYMAP.html') $guide -Force -ErrorAction SilentlyContinue
     Copy-Item (Join-Path $src 'dictionary.tsv') (Join-Path $dest 'dictionary.tsv') -Force -ErrorAction SilentlyContinue
 
-    # --- register (regsvr32 calls our DllRegisterServer; same CLSID, so this
-    # repoints the existing registration at the new file) ---
-    Register-Dll (Join-Path $env:WinDir 'System32\regsvr32.exe') $dllX64 '64-bit'
+    # Register the DLLs that match this PC's architecture. System32\regsvr32 is
+    # the OS-native one (x64 on x64 Windows, ARM64 on ARM64 Windows); SysWOW64 is
+    # the 32-bit one. (DllRegisterServer must run in a matching-arch process, so
+    # we don't try to register, say, an x64 DLL on ARM64.)
+    $regSys = Join-Path $env:WinDir 'System32\regsvr32.exe'
     $regWow = Join-Path $env:WinDir 'SysWOW64\regsvr32.exe'
-    if ($haveX86 -and (Test-Path $regWow)) {
-        Register-Dll $regWow $dllX86 '32-bit'
+    $osArch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
+    Write-Host "Detected Windows architecture: $osArch"
+
+    switch ($osArch) {
+        'Arm64' { $nativeSrc = 'BanglaPhonetic_arm64.dll' }
+        'X86'   { $nativeSrc = 'BanglaPhonetic_x86.dll' }
+        default { $nativeSrc = 'BanglaPhonetic_x64.dll' }   # X64
+    }
+
+    $installed = @()
+    $native = Install-Component $nativeSrc $regSys "native ($osArch)"
+    if ($native) { $installed += $native }
+
+    # Add the 32-bit DLL for x86 apps on 64-bit/ARM64 Windows.
+    if ($osArch -eq 'X64' -or $osArch -eq 'Arm64') {
+        $x86 = Install-Component 'BanglaPhonetic_x86.dll' $regWow '32-bit'
+        if ($x86) { $installed += $x86 }
+    }
+
+    if ($installed.Count -eq 0) {
+        throw "No matching DLL for $osArch was found in this package (run scripts\package.bat)."
+    }
+    if (-not $native -and $osArch -eq 'Arm64') {
+        Write-Warning 'No ARM64 DLL in this package: native ARM64 apps will not see the keyboard (x86 apps will). Rebuild with the ARM64 build tools to add it.'
     }
 
     # --- Add/Remove Programs entry ---
@@ -102,11 +127,8 @@ try {
 
     # --- clean up older builds' DLLs (best effort; loaded ones are skipped and
     # are harmlessly removed after the next restart) ---
-    Get-ChildItem $dest -Filter 'BanglaPhonetic_x64*.dll' -ErrorAction SilentlyContinue |
-        Where-Object { $_.FullName -ne $dllX64 } |
-        Remove-Item -Force -ErrorAction SilentlyContinue
-    Get-ChildItem $dest -Filter 'BanglaPhonetic_x86*.dll' -ErrorAction SilentlyContinue |
-        Where-Object { $_.FullName -ne $dllX86 } |
+    Get-ChildItem $dest -Filter 'BanglaPhonetic_*.dll' -ErrorAction SilentlyContinue |
+        Where-Object { $installed -notcontains $_.FullName } |
         Remove-Item -Force -ErrorAction SilentlyContinue
 
     Write-Host ''

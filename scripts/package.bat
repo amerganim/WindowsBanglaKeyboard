@@ -8,6 +8,9 @@ call "%~dp0build.bat" x64 "-DBUILD_TIP=ON"
 if errorlevel 1 exit /b 1
 call "%~dp0build.bat" x86 "-DBUILD_TIP=ON"
 if errorlevel 1 exit /b 1
+REM ARM64 is best-effort: only built if the ARM64 build tools are installed.
+call "%~dp0build.bat" arm64 "-DBUILD_TIP=ON"
+if errorlevel 1 echo [package] ARM64 build skipped (ARM64 build tools not installed).
 
 set DIST=%ROOT%\dist
 if exist "%DIST%" rmdir /s /q "%DIST%"
@@ -15,6 +18,7 @@ mkdir "%DIST%"
 
 copy /y "%ROOT%\build-x64\app\BanglaPhonetic.dll" "%DIST%\BanglaPhonetic_x64.dll" >nul
 copy /y "%ROOT%\build-x86\app\BanglaPhonetic.dll" "%DIST%\BanglaPhonetic_x86.dll" >nul
+if exist "%ROOT%\build-arm64\app\BanglaPhonetic.dll" copy /y "%ROOT%\build-arm64\app\BanglaPhonetic.dll" "%DIST%\BanglaPhonetic_arm64.dll" >nul
 copy /y "%ROOT%\installer\install.ps1"   "%DIST%\install.ps1" >nul
 copy /y "%ROOT%\installer\uninstall.ps1" "%DIST%\uninstall.ps1" >nul
 copy /y "%ROOT%\installer\KEYMAP.html"   "%DIST%\KEYMAP.html" >nul

@@ -31,9 +31,13 @@ $regWow  = Join-Path $env:WinDir 'SysWOW64\regsvr32.exe'
 try {
     Write-Host "Uninstalling Amader Bangla Keyboard from $dest"
 
-    # --- unregister every installed DLL (any build) ---
-    Get-ChildItem $dest -Filter 'BanglaPhonetic_x64*.dll' -ErrorAction SilentlyContinue |
-        ForEach-Object { Unregister-Dll $regSys $_.FullName }
+    # --- unregister every installed DLL (any build/arch) ---
+    # Native-arch DLLs (x64 on x64 Windows, ARM64 on ARM64 Windows) via System32;
+    # 32-bit DLLs via SysWOW64.
+    foreach ($pat in @('BanglaPhonetic_x64*.dll', 'BanglaPhonetic_arm64*.dll')) {
+        Get-ChildItem $dest -Filter $pat -ErrorAction SilentlyContinue |
+            ForEach-Object { Unregister-Dll $regSys $_.FullName }
+    }
     if (Test-Path $regWow) {
         Get-ChildItem $dest -Filter 'BanglaPhonetic_x86*.dll' -ErrorAction SilentlyContinue |
             ForEach-Object { Unregister-Dll $regWow $_.FullName }
