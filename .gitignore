@@ -3,6 +3,7 @@
 /build-x64/
 /build-x86/
 /out/
+/dist/
 *.obj
 *.lib
 *.dll

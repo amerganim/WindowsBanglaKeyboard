@@ -24,9 +24,9 @@ engine/   Portable phonetic transliteration library (no Windows/COM deps).
 tests/    Self-contained unit tests for the engine.
 harness/  Standalone console app to exercise the engine (no registration).
 app/      The TSF TIP: COM DLL that hosts the engine as an input method.
-scripts/  build.bat — configures + builds with the VS Build Tools toolchain.
+scripts/  build.bat (configure+build) and package.bat (build both archs + stage dist\).
 docs/     This document.
-installer/  (future) packaging + registration installer.
+installer/  install.ps1 / uninstall.ps1 (self-elevating) + installer README.
 ```
 
 ### `engine` — phonetic transliteration (Phase 1, done)
@@ -134,6 +134,9 @@ x86 the same way: `scripts\build.bat x86 "-DBUILD_TIP=ON"`.
 - **Phase 4 — UX** ✅ (in progress) — language-bar button (বাং/Eng), Ctrl+Shift+B
   mode toggle, persisted config. Remaining: candidate/suggestion window, fuller
   settings UI, custom-rule editing.
-- **Phase 5 — installer** — WiX/MSIX, per-user registration, code signing.
+- **Phase 5 — installer** ✅ — `scripts\package.bat` builds x64+x86 and stages
+  `dist\`; self-elevating `install.ps1`/`uninstall.ps1` copy to Program Files,
+  register both DLLs (System32 + SysWOW64 `regsvr32`), and add an Apps & features
+  entry. Remaining for distribution: code signing; optional MSIX.
 - **Phase 6 — compatibility QA & release** — Office, browsers, terminals,
   Electron, elevated apps; beta with native typists.

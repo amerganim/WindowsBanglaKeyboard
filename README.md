@@ -20,7 +20,17 @@ portable, unit-tested phonetic engine at its core.
   romanized Bangla without registering anything.
 - ✅ **Phase 4 — UX (started)** (`app/`): language-bar button (বাং/Eng),
   Ctrl+Shift+B Bangla/English toggle, persisted in the registry.
-- ⏳ Next: register & test in real apps; installer; candidate/suggestion window.
+- ✅ **Phase 5 — installer** (`installer/`, `scripts\package.bat`): builds
+  x64+x86 and stages `dist\` with self-elevating install/uninstall scripts.
+- ⏳ Next: live test in real apps; code signing; candidate/suggestion window.
+
+## Install
+
+```bat
+scripts\package.bat
+```
+Then right-click `dist\install.ps1` → **Run with PowerShell** (it self-elevates).
+See [installer/README.md](installer/README.md) for details and uninstall.
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the design and full roadmap.
 
