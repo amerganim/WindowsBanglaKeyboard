@@ -24,9 +24,11 @@ portable, unit-tested phonetic engine at its core.
   x64+x86 and stages `dist\` with self-elevating install/uninstall scripts.
 - ✅ **Typing guide**: installed as a Start Menu shortcut ("Bangla Phonetic
   Typing Guide") and in the language-bar menu — a full key-map cheat sheet.
-- ✅ **Word suggestions**: a bundled dictionary + frequency-ranked candidate
-  window (↓/↑/Tab to pick, Enter/Space to commit, Esc to dismiss).
-- ⏳ Next: code signing; bigger dictionary; learning frequencies.
+- ✅ **Word suggestions**: an editable bundled dictionary (`dictionary.tsv`,
+  ~275 words) + frequency-ranked candidate window that **learns** which words
+  you pick (stored per-user in `%LOCALAPPDATA%\BanglaPhonetic\learned.tsv`).
+  ↓/↑/Tab to pick, Enter/Space to commit, Esc to dismiss.
+- ⏳ Next: testing against real Bangla text; code signing; ARM64 build.
 
 ## Install
 

@@ -1,0 +1,255 @@
+# Bangla Phonetic dictionary.  Format:  roman<TAB>bangla<TAB>freq
+# Lines starting with # are ignored. Higher freq = ranked earlier.
+# Edit/extend freely — it is loaded at runtime, no rebuild needed.
+# (A small built-in list ships inside the engine as a fallback.)
+
+# --- pronouns / determiners ---
+amra	আমরা	70
+tomra	তোমরা	60
+tader	তাদের	60
+take	তাকে	60
+era	এরা	50
+ora	ওরা	50
+ota	ওটা	55
+oi	ওই	55
+jara	যারা	50
+jini	যিনি	40
+nije	নিজে	50
+nijer	নিজের	50
+
+# --- question / connectives ---
+kobe	কবে	55
+kon	কোন	60
+kivabe	কীভাবে	55
+kar	কার	50
+jodi	যদি	65
+tahole	তাহলে	55
+kintu	কিন্তু	70
+ebong	এবং	70
+othoba	অথবা	50
+karon	কারণ	60
+jeno	যেন	45
+jemon	যেমন	55
+temon	তেমন	45
+
+# --- common verbs ---
+kori	করি	60
+korbo	করব	60
+korchhi	করছি	55
+korechhi	করেছি	55
+korte	করতে	60
+korle	করলে	45
+hoy	হয়	75
+hoye	হয়ে	60
+hoyechhe	হয়েছে	60
+holo	হলো	60
+hochhe	হচ্ছে	55
+jachhi	যাচ্ছি	50
+jabo	যাব	55
+jay	যায়	55
+gechhe	গেছে	45
+ase	আসে	50
+asbe	আসবে	45
+aschhi	আসছি	45
+dei	দেই	40
+debo	দেব	45
+dekhi	দেখি	50
+dekhe	দেখে	50
+bole	বলে	60
+boli	বলি	45
+bolbo	বলব	45
+khai	খাই	45
+khabo	খাব	45
+chai	চাই	60
+chao	চাও	45
+jani	জানি	60
+jane	জানে	50
+jante	জানতে	45
+pari	পারি	55
+pare	পারে	55
+parbo	পারব	45
+nei	নেই	65
+niye	নিয়ে	60
+diye	দিয়ে	60
+thake	থাকে	55
+thaki	থাকি	45
+chhilo	ছিল	55
+thakbe	থাকবে	40
+
+# --- greetings / time ---
+shubho	শুভ	60
+sokal	সকাল	55
+bikel	বিকেল	45
+sondha	সন্ধ্যা	45
+rat	রাত	55
+ratri	রাত্রি	35
+din	দিন	60
+kal	কাল	55
+gotokal	গতকাল	40
+agamikal	আগামীকাল	35
+soptaho	সপ্তাহ	35
+mash	মাস	45
+bochhor	বছর	50
+ekhono	এখনো	45
+abar	আবার	60
+age	আগে	55
+pore	পরে	55
+maje	মাঝে	40
+
+# --- people / family ---
+bon	বোন	55
+chhele	ছেলে	55
+meye	মেয়ে	55
+chhelemeye	ছেলেমেয়ে	30
+sntan	সন্তান	30
+sami	স্বামী	40
+stri	স্ত্রী	40
+dada	দাদা	45
+didi	দিদি	40
+chacha	চাচা	40
+mama	মামা	40
+nani	নানি	35
+dadu	দাদু	35
+poribar	পরিবার	55
+shikkhok	শিক্ষক	45
+chhatro	ছাত্র	45
+chhatri	ছাত্রী	40
+daktar	ডাক্তার	45
+
+# --- places / things ---
+bari	বাড়ি	60
+basa	বাসা	50
+ghor	ঘর	50
+school	স্কুল	45
+college	কলেজ	40
+biddaloy	বিদ্যালয়	35
+hashpatal	হাসপাতাল	40
+bajar	বাজার	45
+dokan	দোকান	45
+office	অফিস	45
+rasta	রাস্তা	50
+gari	গাড়ি	50
+train	ট্রেন	40
+shohor	শহর	50
+gram	গ্রাম	50
+desh	দেশ	60
+prithibi	পৃথিবী	50
+akash	আকাশ	50
+nodi	নদী	45
+shomudro	সমুদ্র	40
+pahar	পাহাড়	35
+gachh	গাছ	45
+phul	ফুল	50
+pakhi	পাখি	40
+
+# --- food / nature ---
+bhat	ভাত	50
+mach	মাছ	45
+mangsho	মাংস	40
+dim	ডিম	40
+dudh	দুধ	45
+cha	চা	50
+pani	পানি	55
+jol	জল	50
+khabar	খাবার	55
+phol	ফল	45
+shobji	সবজি	35
+mishti	মিষ্টি	45
+nun	নুন	30
+chini	চিনি	35
+
+# --- body / abstract ---
+chokh	চোখ	50
+mukh	মুখ	45
+hat	হাত	50
+pa	পা	40
+matha	মাথা	50
+mon	মন	60
+pran	প্রাণ	40
+shorir	শরীর	45
+prem	প্রেম	50
+bhalobasha	ভালোবাসা	60
+ananda	আনন্দ	45
+dukkho	দুঃখ	45
+kosto	কষ্ট	45
+asha	আশা	50
+shopno	স্বপ্ন	50
+shanti	শান্তি	45
+shokti	শক্তি	40
+gyan	জ্ঞান	35
+
+# --- adjectives / adverbs ---
+boro	বড়	60
+choto	ছোট	55
+notun	নতুন	60
+purono	পুরনো	45
+beshi	বেশি	55
+kom	কম	45
+druto	দ্রুত	40
+aste	আস্তে	40
+sotti	সত্যি	45
+mittha	মিথ্যা	40
+shotto	সত্য	40
+shukh	সুখ	40
+shahosi	সাহসী	30
+gorib	গরিব	40
+dhoni	ধনী	40
+shada	সাদা	40
+kalo	কালো	40
+lal	লাল	40
+nil	নীল	40
+shobuj	সবুজ	40
+holud	হলুদ	35
+
+# --- numbers (words) ---
+ek	এক	60
+dui	দুই	60
+tin	তিন	55
+char	চার	55
+panch	পাঁচ	50
+chhoy	ছয়	45
+sat	সাত	45
+at	আট	45
+noy	নয়	45
+dosh	দশ	45
+egaro	এগারো	30
+baro	বারো	30
+bish	বিশ	35
+pochish	পঁচিশ	30
+ponchash	পঞ্চাশ	30
+sho	শো	35
+hajar	হাজার	40
+lokkho	লক্ষ	35
+koti	কোটি	35
+
+# --- misc common ---
+ha	হ্যাঁ	55
+na	না	75
+thik	ঠিক	60
+achchha	আচ্ছা	50
+mane	মানে	50
+dhorun	ধরুন	25
+oboshyoi	অবশ্যই	35
+shudhu	শুধু	50
+aro	আরও	55
+ektu	একটু	55
+besh	বেশ	30
+shob	সব	60
+shobai	সবাই	55
+kibhabe	কীভাবে	40
+dorkar	দরকার	50
+proyojon	প্রয়োজন	40
+shomossa	সমস্যা	45
+shomadhan	সমাধান	35
+uttor	উত্তর	45
+proshno	প্রশ্ন	45
+golpo	গল্প	45
+gaan	গান	45
+boi	বই	60
+kobita	কবিতা	45
+chhobi	ছবি	45
+khela	খেলা	50
+khela	খেলা	40
+itihash	ইতিহাস	40
+bhasha	ভাষা	50
+shobdo	শব্দ	40

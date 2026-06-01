@@ -1,5 +1,6 @@
 #include "TextService.h"
 
+#include <fstream>
 #include <new>
 
 #include "DisplayAttribute.h"
@@ -53,6 +54,37 @@ bool IsModifierKey(WPARAM vk) {
     default:
       return false;
   }
+}
+
+// Directory containing this DLL (with trailing backslash), where the bundled
+// dictionary.tsv lives.
+std::wstring ModuleDir() {
+  WCHAR path[MAX_PATH];
+  DWORD n = GetModuleFileNameW(g_hInst, path, ARRAYSIZE(path));
+  if (n == 0 || n >= ARRAYSIZE(path)) return std::wstring();
+  WCHAR* slash = wcsrchr(path, L'\\');
+  if (slash == nullptr) return std::wstring();
+  return std::wstring(path, slash - path + 1);
+}
+
+// Per-user data directory %LOCALAPPDATA%\BanglaPhonetic (no trailing backslash).
+std::wstring UserDataDir() {
+  WCHAR buf[MAX_PATH];
+  DWORD n = GetEnvironmentVariableW(L"LOCALAPPDATA", buf, ARRAYSIZE(buf));
+  if (n == 0 || n >= ARRAYSIZE(buf)) return std::wstring();
+  return std::wstring(buf) + L"\\BanglaPhonetic";
+}
+
+std::string ReadFileUtf8(const std::wstring& path) {
+  std::ifstream f(path.c_str(), std::ios::binary);
+  if (!f) return std::string();
+  return std::string((std::istreambuf_iterator<char>(f)),
+                     std::istreambuf_iterator<char>());
+}
+
+void WriteFileUtf8(const std::wstring& path, const std::string& data) {
+  std::ofstream f(path.c_str(), std::ios::binary | std::ios::trunc);
+  if (f) f.write(data.data(), static_cast<std::streamsize>(data.size()));
 }
 
 }  // namespace
@@ -137,10 +169,12 @@ STDMETHODIMP CTextService::ActivateEx(ITfThreadMgr* ptim, TfClientId tid,
 
   PreserveToggleKey(true);
   AddLangBarButton();
+  LoadDictionaries();
   return S_OK;
 }
 
 STDMETHODIMP CTextService::Deactivate() {
+  SaveLearned();
   candidates_.Hide();
   RemoveLangBarButton();
   PreserveToggleKey(false);
@@ -322,7 +356,7 @@ HRESULT CTextService::EndComposition(ITfContext* pic,
 }
 
 void CTextService::RefreshCandidates(ITfContext* /*pic*/) {
-  suggestions_ = bnphonetic::Suggest(buffer_);
+  suggestions_ = suggester_.Suggest(buffer_);
   // Only show the list when there are real alternatives beyond the literal
   // transliteration (element 0).
   if (suggestions_.size() > 1 && caret_rect_valid_) {
@@ -341,8 +375,28 @@ HRESULT CTextService::CommitSelected(ITfContext* pic,
   std::wstring override_text;
   if (sel > 0 && sel < static_cast<int>(suggestions_.size())) {
     override_text = Utf8ToUtf16(suggestions_[sel]);  // a chosen dictionary word
+    suggester_.RecordUsage(suggestions_[sel]);       // learn from the choice
   }
   return EndComposition(pic, trailing, override_text);
+}
+
+void CTextService::LoadDictionaries() {
+  const std::wstring dict = ModuleDir() + L"dictionary.tsv";
+  const std::string d = ReadFileUtf8(dict);
+  if (!d.empty()) suggester_.LoadDictionaryData(d);
+
+  const std::wstring dir = UserDataDir();
+  if (!dir.empty()) {
+    const std::string learned = ReadFileUtf8(dir + L"\\learned.tsv");
+    if (!learned.empty()) suggester_.LoadLearnedData(learned);
+  }
+}
+
+void CTextService::SaveLearned() const {
+  const std::wstring dir = UserDataDir();
+  if (dir.empty()) return;
+  CreateDirectoryW(dir.c_str(), nullptr);
+  WriteFileUtf8(dir + L"\\learned.tsv", suggester_.DumpLearnedData());
 }
 
 // ---- ITfKeyEventSink ----

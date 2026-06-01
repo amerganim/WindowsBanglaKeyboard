@@ -129,7 +129,10 @@ text. Use it (optional):
 - **Esc** — dismiss the list and keep your typed spelling
 
 If you ignore it and just keep typing/press Space, you always get exactly what
-you typed.
+you typed. The list **learns** the words you pick most and ranks them higher
+over time. The word list lives in an editable file you can extend:
+`C:\Program Files\BanglaPhonetic\dictionary.tsv` (`roman <TAB> Bangla <TAB>
+freq`).
 
 ## Not yet supported (planned)
 

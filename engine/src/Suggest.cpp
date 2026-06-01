@@ -1,144 +1,172 @@
-#include "bnphonetic/Transliterator.h"
+#include "bnphonetic/Suggester.h"
 
 #include <algorithm>
 #include <cctype>
+#include <cstdlib>
+#include <sstream>
 
-// Word-suggestion dictionary. Each entry maps a romanized key (what the user
-// types) to the correct Bangla word and a rough frequency weight (higher =
-// more common). Suggestions are matched by case-insensitive prefix on the key
-// and returned most-frequent first, so this serves both the simple
-// completion list and the frequency-ranked behaviour.
-//
-// Compiled with /utf-8 (Bangla string literals). This is a curated starter
-// list; it is meant to grow.
+#include "bnphonetic/Transliterator.h"
+
+// Word suggestions. The small built-in list below is the always-available
+// fallback; a larger bundled dictionary.tsv is loaded on top of it at runtime.
+// Compiled with /utf-8 (Bangla literals).
 
 namespace bnphonetic {
 namespace {
 
-struct DictEntry {
+struct BuiltinEntry {
   const char* key;
   const char* bangla;
   int freq;
 };
 
-const DictEntry kDict[] = {
-    // pronouns / very common
+const BuiltinEntry kBuiltin[] = {
     {"ami", "আমি", 100},        {"amar", "আমার", 95},
     {"amake", "আমাকে", 70},     {"amader", "আমাদের", 70},
     {"tumi", "তুমি", 95},       {"tomar", "তোমার", 85},
-    {"tomake", "তোমাকে", 65},   {"tomader", "তোমাদের", 60},
-    {"apni", "আপনি", 80},       {"apnar", "আপনার", 70},
-    {"se", "সে", 85},           {"tar", "তার", 80},
-    {"tara", "তারা", 70},       {"tader", "তাদের", 60},
-    {"ora", "ওরা", 50},         {"era", "এরা", 50},
-    {"eta", "এটা", 70},         {"ota", "ওটা", 55},
-    {"ei", "এই", 80},           {"oi", "ওই", 55},
-    {"ja", "যা", 50},           {"jodi", "যদি", 65},
-
-    // question words
+    {"tomake", "তোমাকে", 65},   {"apni", "আপনি", 80},
+    {"apnar", "আপনার", 70},     {"se", "সে", 85},
+    {"tar", "তার", 80},         {"tara", "তারা", 70},
+    {"eta", "এটা", 70},         {"ei", "এই", 80},
     {"ki", "কি", 90},           {"kothay", "কোথায়", 70},
     {"keno", "কেন", 75},        {"kemon", "কেমন", 75},
-    {"kobe", "কবে", 55},        {"ke", "কে", 70},
-    {"koto", "কত", 65},         {"kon", "কোন", 65},
-    {"kivabe", "কীভাবে", 55},
-
-    // common verbs / states
+    {"ke", "কে", 70},           {"koto", "কত", 65},
     {"bhalo", "ভালো", 90},      {"bhalobasa", "ভালোবাসা", 70},
-    {"kharap", "খারাপ", 55},    {"achho", "আছো", 55},
     {"achhi", "আছি", 70},       {"achhe", "আছে", 75},
-    {"korbo", "করব", 60},       {"kori", "করি", 60},
-    {"kora", "করা", 65},        {"korte", "করতে", 60},
-    {"holo", "হলো", 60},        {"hobe", "হবে", 70},
-    {"hoyechhe", "হয়েছে", 55},  {"jabo", "যাব", 55},
-    {"jai", "যাই", 55},         {"khabo", "খাব", 50},
-    {"dekha", "দেখা", 55},      {"bola", "বলা", 55},
-    {"jana", "জানা", 50},       {"chai", "চাই", 60},
-
-    // greetings / time
-    {"dhonnobad", "ধন্যবাদ", 80}, {"shubho", "শুভ", 60},
-    {"sokal", "সকাল", 55},      {"bikal", "বিকাল", 45},
-    {"rat", "রাত", 55},         {"din", "দিন", 60},
-    {"aj", "আজ", 65},           {"kal", "কাল", 55},
-    {"ekhon", "এখন", 65},       {"tahole", "তাহলে", 55},
-    {"abar", "আবার", 60},
-
-    // common nouns
-    {"bangla", "বাংলা", 85},    {"bangladesh", "বাংলাদেশ", 75},
-    {"desh", "দেশ", 60},        {"manush", "মানুষ", 65},
-    {"bondhu", "বন্ধু", 65},    {"poribar", "পরিবার", 55},
-    {"baba", "বাবা", 65},       {"ma", "মা", 70},
-    {"bhai", "ভাই", 65},        {"bon", "বোন", 55},
-    {"chhele", "ছেলে", 55},     {"meye", "মেয়ে", 55},
-    {"boi", "বই", 60},          {"pani", "পানি", 55},
-    {"jol", "জল", 50},          {"khabar", "খাবার", 55},
-    {"bari", "বাড়ি", 60},       {"basa", "বাসা", 50},
-    {"shohor", "শহর", 50},      {"gram", "গ্রাম", 50},
-    {"prithibi", "পৃথিবী", 50}, {"akash", "আকাশ", 50},
+    {"kora", "করা", 65},        {"hobe", "হবে", 70},
+    {"dhonnobad", "ধন্যবাদ", 80}, {"aj", "আজ", 65},
+    {"ekhon", "এখন", 65},       {"bangla", "বাংলা", 85},
+    {"bangladesh", "বাংলাদেশ", 75}, {"manush", "মানুষ", 65},
+    {"bondhu", "বন্ধু", 65},    {"baba", "বাবা", 65},
+    {"ma", "মা", 70},           {"bhai", "ভাই", 65},
     {"somoy", "সময়", 65},       {"kaj", "কাজ", 65},
     {"taka", "টাকা", 60},       {"nam", "নাম", 60},
-    {"kotha", "কথা", 65},       {"prem", "প্রেম", 50},
-    {"jibon", "জীবন", 60},      {"mon", "মন", 60},
-    {"chokh", "চোখ", 50},       {"hat", "হাত", 50},
-    {"matha", "মাথা", 50},      {"phul", "ফুল", 50},
-
-    // number words
-    {"ek", "এক", 65},           {"dui", "দুই", 60},
-    {"tin", "তিন", 55},         {"char", "চার", 55},
-    {"panch", "পাঁচ", 50},      {"chhoy", "ছয়", 45},
-    {"sat", "সাত", 45},         {"at", "আট", 45},
-    {"noy", "নয়", 45},          {"dosh", "দশ", 45},
-
-    // adjectives / adverbs
-    {"boro", "বড়", 60},         {"choto", "ছোট", 55},
-    {"notun", "নতুন", 60},      {"purono", "পুরনো", 45},
+    {"kotha", "কথা", 65},       {"jibon", "জীবন", 60},
     {"sundor", "সুন্দর", 70},   {"onek", "অনেক", 70},
-    {"ektu", "একটু", 55},       {"sob", "সব", 65},
-    {"kichu", "কিছু", 65},      {"aro", "আরও", 55},
-    {"taratari", "তাড়াতাড়ি", 45}, {"dhire", "ধীরে", 40},
+    {"sob", "সব", 65},          {"kichu", "কিছু", 65},
 };
 
 char Lower(char c) {
   return static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
 }
 
-// True if `key` starts with `lower_prefix` (the prefix is already lowercased;
-// the key is lowercased on the fly).
-bool KeyHasPrefix(const char* key, const std::string& lower_prefix) {
+bool KeyHasPrefix(const std::string& key, const std::string& lower_prefix) {
+  if (key.size() < lower_prefix.size()) return false;
   for (size_t i = 0; i < lower_prefix.size(); ++i) {
-    if (key[i] == '\0' || Lower(key[i]) != lower_prefix[i]) return false;
+    if (Lower(key[i]) != lower_prefix[i]) return false;
   }
   return true;
 }
 
+std::string Trim(const std::string& s) {
+  size_t a = s.find_first_not_of(" \t\r\n");
+  if (a == std::string::npos) return std::string();
+  size_t b = s.find_last_not_of(" \t\r\n");
+  return s.substr(a, b - a + 1);
+}
+
+// Each committed use is worth this much static-frequency weight.
+const int kLearnWeight = 40;
+
 }  // namespace
 
-std::vector<std::string> Suggest(const std::string& prefix, size_t max_results) {
+Suggester::Suggester() {
+  entries_.reserve(sizeof(kBuiltin) / sizeof(kBuiltin[0]));
+  for (const BuiltinEntry& e : kBuiltin)
+    entries_.push_back({e.key, e.bangla, e.freq});
+}
+
+void Suggester::LoadDictionaryData(const std::string& tsv) {
+  std::istringstream in(tsv);
+  std::string line;
+  while (std::getline(in, line)) {
+    std::string t = Trim(line);
+    if (t.empty() || t[0] == '#') continue;
+    size_t p1 = t.find('\t');
+    if (p1 == std::string::npos) continue;
+    size_t p2 = t.find('\t', p1 + 1);
+    std::string key = Trim(t.substr(0, p1));
+    std::string bangla = Trim(p2 == std::string::npos ? t.substr(p1 + 1)
+                                                      : t.substr(p1 + 1, p2 - p1 - 1));
+    int freq = 30;
+    if (p2 != std::string::npos) {
+      std::string f = Trim(t.substr(p2 + 1));
+      if (!f.empty()) freq = std::atoi(f.c_str());
+    }
+    if (!key.empty() && !bangla.empty()) entries_.push_back({key, bangla, freq});
+  }
+}
+
+void Suggester::LoadLearnedData(const std::string& tsv) {
+  std::istringstream in(tsv);
+  std::string line;
+  while (std::getline(in, line)) {
+    std::string t = Trim(line);
+    if (t.empty() || t[0] == '#') continue;
+    size_t p = t.find('\t');
+    if (p == std::string::npos) continue;
+    std::string bangla = Trim(t.substr(0, p));
+    int count = std::atoi(Trim(t.substr(p + 1)).c_str());
+    if (!bangla.empty() && count > 0) learned_[bangla] = count;
+  }
+}
+
+std::string Suggester::DumpLearnedData() const {
+  std::string out;
+  for (const auto& kv : learned_) {
+    out += kv.first;
+    out += '\t';
+    out += std::to_string(kv.second);
+    out += '\n';
+  }
+  return out;
+}
+
+void Suggester::RecordUsage(const std::string& bangla) {
+  if (!bangla.empty()) ++learned_[bangla];
+}
+
+std::vector<std::string> Suggester::Suggest(const std::string& prefix,
+                                            size_t max_results) const {
   std::vector<std::string> out;
   if (prefix.empty() || max_results == 0) return out;
 
-  // Element 0: exactly what the user typed.
-  out.push_back(Transliterate(prefix));
+  out.push_back(Transliterate(prefix));  // element 0: exactly what was typed
 
   std::string lower_prefix;
   lower_prefix.reserve(prefix.size());
   for (char c : prefix) lower_prefix.push_back(Lower(c));
 
-  std::vector<const DictEntry*> matches;
-  for (const DictEntry& e : kDict) {
-    if (KeyHasPrefix(e.key, lower_prefix)) matches.push_back(&e);
+  struct Scored {
+    const Entry* e;
+    int score;
+  };
+  std::vector<Scored> matches;
+  for (const Entry& e : entries_) {
+    if (!KeyHasPrefix(e.key, lower_prefix)) continue;
+    int score = e.freq;
+    auto it = learned_.find(e.bangla);
+    if (it != learned_.end()) score += it->second * kLearnWeight;
+    matches.push_back({&e, score});
   }
   std::stable_sort(matches.begin(), matches.end(),
-                   [](const DictEntry* a, const DictEntry* b) {
-                     return a->freq > b->freq;
+                   [](const Scored& a, const Scored& b) {
+                     return a.score > b.score;
                    });
 
-  for (const DictEntry* e : matches) {
+  for (const Scored& m : matches) {
     if (out.size() >= max_results) break;
-    std::string word = e->bangla;
-    if (std::find(out.begin(), out.end(), word) == out.end())
-      out.push_back(std::move(word));
+    if (std::find(out.begin(), out.end(), m.e->bangla) == out.end())
+      out.push_back(m.e->bangla);
   }
   return out;
+}
+
+// Back-compat free function used by tests: a default suggester (built-in
+// dictionary only, no learned data).
+std::vector<std::string> Suggest(const std::string& prefix, size_t max_results) {
+  static const Suggester kDefault;
+  return kDefault.Suggest(prefix, max_results);
 }
 
 }  // namespace bnphonetic

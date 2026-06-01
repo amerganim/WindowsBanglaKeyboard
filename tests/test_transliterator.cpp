@@ -2,6 +2,7 @@
 // expected Bangla literals are UTF-8. Returns non-zero if any case fails.
 
 #include "bnphonetic/Transliterator.h"
+#include "bnphonetic/Suggester.h"
 
 #include <algorithm>
 #include <iostream>
@@ -129,6 +130,47 @@ int main() {
     std::cerr << "FAIL: Suggest(\"\") should be empty\n";
   }
   ++g_total;
+
+  // Suggester: loading a dictionary entry makes it suggestible.
+  {
+    bnphonetic::Suggester s;
+    s.LoadDictionaryData("notunshobdo\tনতুনশব্দ\t99\n# comment line\n");
+    ++g_total;
+    auto v = s.Suggest("notunsh");
+    if (!Contains(v, "নতুনশব্দ")) {
+      ++g_failures;
+      std::cerr << "FAIL: loaded dictionary word not suggested\n";
+    } else {
+      std::cout << "ok  : loaded dictionary word suggested\n";
+    }
+  }
+
+  // Suggester: learned usage promotes a word above a more-frequent default.
+  {
+    bnphonetic::Suggester s;
+    for (int i = 0; i < 5; ++i) s.RecordUsage("আমাকে");
+    auto v = s.Suggest("ama");
+    ++g_total;
+    // v[0] is the literal; v[1] should now be the learned word.
+    if (v.size() < 2 || v[1] != "আমাকে") {
+      ++g_failures;
+      std::cerr << "FAIL: learned word not promoted (got "
+                << (v.size() < 2 ? "<none>" : v[1]) << ")\n";
+    } else {
+      std::cout << "ok  : learned word promoted to top suggestion\n";
+    }
+    // Learned data round-trips through dump/load.
+    bnphonetic::Suggester s2;
+    s2.LoadLearnedData(s.DumpLearnedData());
+    auto v2 = s2.Suggest("ama");
+    ++g_total;
+    if (v2.size() < 2 || v2[1] != "আমাকে") {
+      ++g_failures;
+      std::cerr << "FAIL: learned data did not round-trip\n";
+    } else {
+      std::cout << "ok  : learned data round-trips\n";
+    }
+  }
 
   std::cout << "\n" << (g_total - g_failures) << "/" << g_total
             << " checks passed\n";

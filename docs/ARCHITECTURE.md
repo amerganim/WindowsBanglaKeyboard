@@ -145,7 +145,11 @@ x86 the same way: `scripts\build.bat x86 "-DBUILD_TIP=ON"`.
   window**: the engine's `Suggest()` (bundled, frequency-ranked dictionary in
   `engine/src/Suggest.cpp`) feeds a no-focus popup (`CandidateWindow`, positioned
   via `ITfContextView::GetTextExt`); ↓/↑/Tab select, Enter/Space commit, Esc
-  dismisses. Remaining: bigger dictionary, learned frequencies, settings UI.
+  dismisses. The `bnphonetic::Suggester` keeps a small built-in list, loads the
+  bundled editable `dictionary.tsv`, and **learns** picked words (counts blended
+  into ranking, persisted to `%LOCALAPPDATA%\BanglaPhonetic\learned.tsv`; the
+  engine does no file I/O — the TIP reads/writes and passes UTF-8 text in/out).
+  Remaining: settings UI.
 - **Phase 5 — installer** ✅ — `scripts\package.bat` builds x64+x86 and stages
   `dist\`; self-elevating `install.ps1`/`uninstall.ps1` copy to Program Files,
   register both DLLs (System32 + SysWOW64 `regsvr32`), and add an Apps & features

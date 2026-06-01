@@ -35,7 +35,7 @@ function Register-Dll([string]$regsvr, [string]$dll, [string]$label) {
 
 $AppName   = 'BanglaPhonetic'
 $Display   = 'Bangla Phonetic Keyboard'
-$Version   = '0.8.0'
+$Version   = '0.9.0'
 $Publisher = 'WindowsBanglaKeyboard'
 
 $src  = $PSScriptRoot
@@ -64,6 +64,7 @@ try {
     Copy-Item (Join-Path $src 'uninstall.ps1') (Join-Path $dest 'uninstall.ps1') -Force -ErrorAction SilentlyContinue
     $guide = Join-Path $dest 'KEYMAP.html'
     Copy-Item (Join-Path $src 'KEYMAP.html') $guide -Force -ErrorAction SilentlyContinue
+    Copy-Item (Join-Path $src 'dictionary.tsv') (Join-Path $dest 'dictionary.tsv') -Force -ErrorAction SilentlyContinue
 
     # --- register (regsvr32 calls our DllRegisterServer; same CLSID, so this
     # repoints the existing registration at the new file) ---

@@ -18,6 +18,7 @@ copy /y "%ROOT%\build-x86\app\BanglaPhonetic.dll" "%DIST%\BanglaPhonetic_x86.dll
 copy /y "%ROOT%\installer\install.ps1"   "%DIST%\install.ps1" >nul
 copy /y "%ROOT%\installer\uninstall.ps1" "%DIST%\uninstall.ps1" >nul
 copy /y "%ROOT%\installer\KEYMAP.html"   "%DIST%\KEYMAP.html" >nul
+copy /y "%ROOT%\installer\dictionary.tsv" "%DIST%\dictionary.tsv" >nul
 copy /y "%ROOT%\installer\README.md"     "%DIST%\README.md" >nul
 copy /y "%ROOT%\LICENSE"                 "%DIST%\LICENSE" >nul
 

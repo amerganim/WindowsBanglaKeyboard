@@ -5,6 +5,7 @@
 
 #include "CandidateWindow.h"
 #include "Globals.h"
+#include "bnphonetic/Suggester.h"
 
 class CLangBarButton;
 
@@ -88,6 +89,10 @@ class CTextService : public ITfTextInputProcessorEx,
   void RemoveLangBarButton();
   void PreserveToggleKey(bool add);
 
+  // Suggestion dictionary + per-user learned frequencies.
+  void LoadDictionaries();   // bundled dictionary.tsv + user learned.tsv
+  void SaveLearned() const;  // persist learned.tsv
+
   LONG ref_;
   ITfThreadMgr* thread_mgr_;
   TfClientId client_id_;
@@ -98,6 +103,7 @@ class CTextService : public ITfTextInputProcessorEx,
   std::string buffer_;  // accumulated Latin keys for the current word
 
   CandidateWindow candidates_;
+  bnphonetic::Suggester suggester_;
   std::vector<std::string> suggestions_;  // UTF-8, index-aligned with the window
   RECT caret_rect_;                        // screen rect of the composition
   bool caret_rect_valid_;
