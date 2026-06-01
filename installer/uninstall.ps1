@@ -17,37 +17,55 @@ if (-not $principal.IsInRole([Security.Principal.WindowsBuiltinRole]::Administra
     return
 }
 
+function Unregister-Dll([string]$regsvr, [string]$dll) {
+    if (-not (Test-Path $dll)) { return }
+    Start-Process -FilePath $regsvr -ArgumentList @('/u', '/s', "`"$dll`"") `
+                  -Wait -WindowStyle Hidden | Out-Null
+}
+
 $AppName = 'BanglaPhonetic'
 $dest    = $PSScriptRoot   # the script lives in the install directory
 
-Write-Host "Uninstalling Bangla Phonetic Keyboard from $dest"
+try {
+    Write-Host "Uninstalling Bangla Phonetic Keyboard from $dest"
 
-# --- unregister (regsvr32 /u calls DllUnregisterServer) ---
-$regSys = Join-Path $env:WinDir 'System32\regsvr32.exe'
-$regWow = Join-Path $env:WinDir 'SysWOW64\regsvr32.exe'
+    # --- unregister (regsvr32 /u calls DllUnregisterServer) ---
+    Unregister-Dll (Join-Path $env:WinDir 'System32\regsvr32.exe')  (Join-Path $dest 'BanglaPhonetic_x64.dll')
+    $regWow = Join-Path $env:WinDir 'SysWOW64\regsvr32.exe'
+    if (Test-Path $regWow) { Unregister-Dll $regWow (Join-Path $dest 'BanglaPhonetic_x86.dll') }
 
-$dllX64 = Join-Path $dest 'BanglaPhonetic_x64.dll'
-$dllX86 = Join-Path $dest 'BanglaPhonetic_x86.dll'
-if (Test-Path $dllX64) { & $regSys '/u' '/s' $dllX64 }
-if ((Test-Path $dllX86) -and (Test-Path $regWow)) { & $regWow '/u' '/s' $dllX86 }
+    # --- remove Add/Remove Programs entry and config ---
+    $arp = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\$AppName"
+    if (Test-Path $arp) { Remove-Item $arp -Recurse -Force }
+    $cfg = 'HKCU:\Software\BanglaPhonetic'
+    if (Test-Path $cfg) { Remove-Item $cfg -Recurse -Force }
 
-# --- remove Add/Remove Programs entry ---
-$arp = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\$AppName"
-if (Test-Path $arp) { Remove-Item $arp -Recurse -Force }
+    # --- delete the DLLs (best effort) ---
+    # The DLLs may still be loaded by the text framework; deletion then fails
+    # and Windows removes them after the next sign-out/restart. We do NOT blindly
+    # schedule a folder delete (that could race a concurrent reinstall).
+    $locked = $false
+    foreach ($f in @('BanglaPhonetic_x64.dll', 'BanglaPhonetic_x86.dll')) {
+        $p = Join-Path $dest $f
+        if (Test-Path $p) {
+            try { Remove-Item $p -Force } catch { $locked = $true }
+        }
+    }
+    if (-not $locked) {
+        # Files released - remove the (now DLL-free) folder contents and folder.
+        Remove-Item $dest -Recurse -Force -ErrorAction SilentlyContinue
+    }
 
-# --- remove our config ---
-$cfg = "HKCU:\Software\BanglaPhonetic"
-if (Test-Path $cfg) { Remove-Item $cfg -Recurse -Force }
-
-# --- delete files ---
-# The DLLs may still be loaded by running processes (ctfmon, the shell), so a
-# delayed delete from a detached shell handles files that are momentarily
-# locked, and also removes this running script's own folder.
-Start-Process cmd.exe -WindowStyle Hidden -ArgumentList @(
-    '/c', "timeout /t 2 >nul & rmdir /s /q `"$dest`"")
-
-Write-Host ''
-Write-Host 'Bangla Phonetic Keyboard uninstalled.' -ForegroundColor Green
-Write-Host 'If any files remain (DLL in use), they are removed on next sign-out/restart.'
-Write-Host ''
-Read-Host 'Press Enter to close'
+    Write-Host ''
+    Write-Host 'Bangla Phonetic Keyboard uninstalled (registration removed).' -ForegroundColor Green
+    if ($locked) {
+        Write-Host 'Some files are still in use; they will be removed after you sign out or restart.' -ForegroundColor Yellow
+        Write-Host 'IMPORTANT: restart (or sign out/in) before reinstalling, so the loaded DLL is released.' -ForegroundColor Yellow
+    }
+} catch {
+    Write-Host ''
+    Write-Host "UNINSTALL ERROR: $($_.Exception.Message)" -ForegroundColor Red
+} finally {
+    Write-Host ''
+    Read-Host 'Press Enter to close'
+}

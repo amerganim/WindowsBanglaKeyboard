@@ -47,6 +47,19 @@ Use **Apps & features → Bangla Phonetic Keyboard → Uninstall**, or run
 config and the Apps entry, and deletes the files (any DLL still loaded is
 removed on next sign-out/restart).
 
+## Reinstalling / troubleshooting
+
+A Windows input method DLL stays **loaded by the text framework** after you use
+it, so it can't be overwritten until it's released. When reinstalling:
+
+1. Uninstall (or just proceed), then **restart Windows** (or sign out and back
+   in) — this releases the loaded DLL.
+2. Run `install.ps1` again.
+
+`install.ps1` detects a still-loaded DLL and tells you to restart instead of
+failing silently. If an install fails, it keeps the window open with the error
+and writes a log to `%TEMP%\BanglaPhonetic_install.log`.
+
 ## Notes
 
 - Administrator rights are required (the input method is registered
