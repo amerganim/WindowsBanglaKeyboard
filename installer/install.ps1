@@ -50,7 +50,7 @@ function Install-Component([string]$srcName, [string]$regsvr, [string]$label) {
 
 $AppName   = 'BanglaPhonetic'
 $Display   = 'Amader Bangla Keyboard'
-$Version   = '0.9.2'
+$Version   = '0.10.0'
 $Publisher = 'WindowsBanglaKeyboard'
 
 $src  = $PSScriptRoot
@@ -66,6 +66,7 @@ try {
     $guide = Join-Path $dest 'KEYMAP.html'
     Copy-Item (Join-Path $src 'KEYMAP.html') $guide -Force -ErrorAction SilentlyContinue
     Copy-Item (Join-Path $src 'dictionary.tsv') (Join-Path $dest 'dictionary.tsv') -Force -ErrorAction SilentlyContinue
+    Copy-Item (Join-Path $src 'words.tsv') (Join-Path $dest 'words.tsv') -Force -ErrorAction SilentlyContinue
 
     # Register the DLLs that match this PC's architecture. System32\regsvr32 is
     # the OS-native one (x64 on x64 Windows, ARM64 on ARM64 Windows); SysWOW64 is

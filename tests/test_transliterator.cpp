@@ -145,6 +145,20 @@ int main() {
     }
   }
 
+  // Suggester: Bangla word-list completion by transliterated prefix.
+  {
+    bnphonetic::Suggester s;
+    s.LoadWordList("আকাশ\t50\nআকাশগঙ্গা\t10\n# comment\nঅন্য\t5\n");
+    auto v = s.Suggest("aka");  // Transliterate("aka") = আকা
+    ++g_total;
+    if (!Contains(v, "আকাশ") || !Contains(v, "আকাশগঙ্গা")) {
+      ++g_failures;
+      std::cerr << "FAIL: word-list prefix completion\n";
+    } else {
+      std::cout << "ok  : word-list prefix completion\n";
+    }
+  }
+
   // Suggester: learned usage promotes a word above a more-frequent default.
   {
     bnphonetic::Suggester s;

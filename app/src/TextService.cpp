@@ -381,9 +381,11 @@ HRESULT CTextService::CommitSelected(ITfContext* pic,
 }
 
 void CTextService::LoadDictionaries() {
-  const std::wstring dict = ModuleDir() + L"dictionary.tsv";
-  const std::string d = ReadFileUtf8(dict);
+  const std::wstring base = ModuleDir();
+  const std::string d = ReadFileUtf8(base + L"dictionary.tsv");
   if (!d.empty()) suggester_.LoadDictionaryData(d);
+  const std::string w = ReadFileUtf8(base + L"words.tsv");
+  if (!w.empty()) suggester_.LoadWordList(w);
 
   const std::wstring dir = UserDataDir();
   if (!dir.empty()) {

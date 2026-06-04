@@ -97,6 +97,28 @@ void Suggester::LoadDictionaryData(const std::string& tsv) {
   }
 }
 
+void Suggester::LoadWordList(const std::string& tsv) {
+  std::istringstream in(tsv);
+  std::string line;
+  while (std::getline(in, line)) {
+    std::string t = Trim(line);
+    if (t.empty() || t[0] == '#') continue;
+    size_t p = t.find('\t');
+    std::string bangla = Trim(p == std::string::npos ? t : t.substr(0, p));
+    int freq = 8;  // default weight for generic lexicon words
+    if (p != std::string::npos) {
+      std::string f = Trim(t.substr(p + 1));
+      // Only treat a purely-numeric second field as a frequency (so a raw
+      // "bangla<TAB>phonemes" lexicon still loads, ignoring the phonemes).
+      if (!f.empty() && f.find_first_not_of("0123456789") == std::string::npos)
+        freq = std::atoi(f.c_str());
+    }
+    if (!bangla.empty()) words_.push_back({bangla, freq});
+  }
+  std::sort(words_.begin(), words_.end(),
+            [](const Word& a, const Word& b) { return a.bangla < b.bangla; });
+}
+
 void Suggester::LoadLearnedData(const std::string& tsv) {
   std::istringstream in(tsv);
   std::string line;
@@ -131,33 +153,59 @@ std::vector<std::string> Suggester::Suggest(const std::string& prefix,
   std::vector<std::string> out;
   if (prefix.empty() || max_results == 0) return out;
 
-  out.push_back(Transliterate(prefix));  // element 0: exactly what was typed
+  const std::string literal = Transliterate(prefix);  // element 0: as typed
+  out.push_back(literal);
 
   std::string lower_prefix;
   lower_prefix.reserve(prefix.size());
   for (char c : prefix) lower_prefix.push_back(Lower(c));
 
-  struct Scored {
-    const Entry* e;
-    int score;
-  };
-  std::vector<Scored> matches;
+  // Collect candidate Bangla words and their best static score. A word may
+  // come from the roman dictionary (matched by romanized prefix) and/or the
+  // word list (matched by Bangla prefix of the transliteration).
+  std::unordered_map<std::string, int> cand;
+
   for (const Entry& e : entries_) {
     if (!KeyHasPrefix(e.key, lower_prefix)) continue;
-    int score = e.freq;
-    auto it = learned_.find(e.bangla);
-    if (it != learned_.end()) score += it->second * kLearnWeight;
-    matches.push_back({&e, score});
+    auto it = cand.find(e.bangla);
+    if (it == cand.end() || e.freq > it->second) cand[e.bangla] = e.freq;
   }
-  std::stable_sort(matches.begin(), matches.end(),
+
+  // Bangla-prefix completion: words starting with the transliteration. words_
+  // is sorted, so binary-search the start of the range.
+  if (!literal.empty()) {
+    auto lo = std::lower_bound(
+        words_.begin(), words_.end(), literal,
+        [](const Word& w, const std::string& p) { return w.bangla < p; });
+    for (auto it = lo; it != words_.end(); ++it) {
+      if (it->bangla.compare(0, literal.size(), literal) != 0) break;
+      auto c = cand.find(it->bangla);
+      if (c == cand.end() || it->freq > c->second) cand[it->bangla] = it->freq;
+    }
+  }
+
+  struct Scored {
+    const std::string* bangla;
+    int score;
+  };
+  std::vector<Scored> scored;
+  scored.reserve(cand.size());
+  for (const auto& kv : cand) {
+    if (kv.first == literal) continue;  // already element 0
+    int score = kv.second;
+    auto l = learned_.find(kv.first);
+    if (l != learned_.end()) score += l->second * kLearnWeight;
+    scored.push_back({&kv.first, score});
+  }
+  std::stable_sort(scored.begin(), scored.end(),
                    [](const Scored& a, const Scored& b) {
-                     return a.score > b.score;
+                     if (a.score != b.score) return a.score > b.score;
+                     return *a.bangla < *b.bangla;  // stable, deterministic
                    });
 
-  for (const Scored& m : matches) {
+  for (const Scored& s : scored) {
     if (out.size() >= max_results) break;
-    if (std::find(out.begin(), out.end(), m.e->bangla) == out.end())
-      out.push_back(m.e->bangla);
+    out.push_back(*s.bangla);
   }
   return out;
 }

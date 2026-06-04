@@ -16,9 +16,16 @@ class Suggester {
   Suggester();  // seeds the small built-in dictionary
 
   // Add dictionary entries from UTF-8 TSV text: "roman<TAB>bangla<TAB>freq"
-  // per line (freq optional). Lines that are blank or start with '#' are
-  // ignored. Adds to whatever is already loaded.
+  // per line (freq optional). Matched by romanized prefix — good for mapping a
+  // user's spelling (even imperfect) to a correct word. Adds to what's loaded.
   void LoadDictionaryData(const std::string& tsv);
+
+  // Add a Bangla word list from UTF-8 TSV text: "bangla<TAB>freq" per line
+  // (anything after the first tab that isn't a number is ignored, so a raw
+  // pronunciation lexicon "bangla<TAB>phonemes" also works). Matched by Bangla
+  // prefix against the transliteration of what the user typed — good for broad
+  // word completion. Adds to what's loaded.
+  void LoadWordList(const std::string& tsv);
 
   // Load / dump the learned counts as UTF-8 TSV "bangla<TAB>count" per line.
   void LoadLearnedData(const std::string& tsv);
@@ -39,7 +46,12 @@ class Suggester {
     std::string bangla;  // suggestion shown/committed
     int freq;            // static frequency weight
   };
-  std::vector<Entry> entries_;
+  struct Word {
+    std::string bangla;  // matched by Bangla prefix
+    int freq;
+  };
+  std::vector<Entry> entries_;          // roman-keyed dictionary
+  std::vector<Word> words_;             // Bangla word list, sorted by `bangla`
   std::unordered_map<std::string, int> learned_;  // bangla -> use count
 };
 

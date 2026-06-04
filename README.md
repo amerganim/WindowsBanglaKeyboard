@@ -24,11 +24,18 @@ portable, unit-tested phonetic engine at its core.
   x64+x86 and stages `dist\` with self-elevating install/uninstall scripts.
 - ✅ **Typing guide**: installed as a Start Menu shortcut ("Amader Bangla
   Keyboard Typing Guide") and in the language-bar menu — a full key-map cheat sheet.
-- ✅ **Word suggestions**: an editable bundled dictionary (`dictionary.tsv`,
-  ~275 words) + frequency-ranked candidate window that **learns** which words
-  you pick (stored per-user in `%LOCALAPPDATA%\BanglaPhonetic\learned.tsv`).
-  ↓/↑/Tab to pick, Enter/Space to commit, Esc to dismiss.
-- ⏳ Next: testing against real Bangla text; code signing; ARM64 build.
+- ✅ **Word suggestions**: a curated roman→Bangla dictionary (autocorrect-style)
+  **plus ~65k-word completion** from the Google bn lexicon, frequency-ranked,
+  with a candidate window that **learns** which words you pick
+  (`%LOCALAPPDATA%\BanglaPhonetic\learned.tsv`). ↓/↑/Tab pick, Enter/Space
+  commit, Esc dismiss.
+- ✅ **Coverage tested** on a Prothom Alo article: 100% of characters typeable;
+  84% of distinct words have a suggestion.
+- ⏳ Next: code signing; ARM64 binary (build is wired).
+
+The bundled `words.tsv` is derived from
+[google/language-resources](https://github.com/google/language-resources) (bn),
+licensed **CC BY 4.0**.
 
 ## Install
 

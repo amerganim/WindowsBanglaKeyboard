@@ -1,4 +1,4 @@
-# Amader Bangla Keyboard 0.9.2
+# Amader Bangla Keyboard 0.10.0
 
 A Windows phonetic Bangla keyboard (TSF input method). Type romanized Bangla in
 any app; switch with Win+Space.
@@ -8,7 +8,8 @@ any app; switch with Win+Space.
   visarga, dari, khanda-ta, ref/ya-phala, ya/ja distinction, bo-phola, digits.
 - Live underlined composition; Space/Enter commit; Backspace edits.
 - Bangla/English toggle (Ctrl+Shift+B) + language-bar button.
-- Word suggestions from an editable dictionary that **learns** your choices.
+- Word suggestions: curated dictionary + ~65k-word completion (Google bn
+  lexicon, CC BY 4.0) that **learns** your choices.
 - Built-in typing guide (Start Menu + language-bar menu).
 - x64 + x86 (ARM64 when built with the ARM64 tools); architecture-aware installer.
 

@@ -27,3 +27,6 @@ Testing/
 
 # Local Claude Code settings (machine-specific permission grants)
 .claude/
+
+# Source lexicon (large input; words.tsv is the committed, generated output)
+lexicon.tsv
