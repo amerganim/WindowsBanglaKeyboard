@@ -40,7 +40,7 @@ OutputBaseFilename=AmaderBanglaKeyboard-Setup-{#MyAppVersion}
 [Files]
 ; Native DLL for the running architecture.
 Source: "dist\BanglaPhonetic_x64.dll";   DestDir: "{app}"; Check: IsX64Win;   Flags: ignoreversion restartreplace uninsrestartdelete
-Source: "dist\BanglaPhonetic_arm64.dll"; DestDir: "{app}"; Check: IsArm64Win; Flags: ignoreversion restartreplace uninsrestartdelete
+Source: "dist\BanglaPhonetic_arm64.dll"; DestDir: "{app}"; Check: IsArm64Win; Flags: ignoreversion restartreplace uninsrestartdelete skipifsourcedoesntexist
 ; 32-bit DLL is installed everywhere (covers x86 apps on 64-bit/ARM64 Windows).
 Source: "dist\BanglaPhonetic_x86.dll";   DestDir: "{app}"; Flags: ignoreversion restartreplace uninsrestartdelete
 ; Data + guide.
@@ -56,7 +56,7 @@ Name: "{group}\Uninstall {#MyAppName}"; Filename: "{uninstallexe}"
 [Run]
 ; Register with the matching-architecture regsvr32 (calls DllRegisterServer).
 Filename: "{sys}\regsvr32.exe";      Parameters: "/s ""{app}\BanglaPhonetic_x64.dll""";   Check: IsX64Win;   Flags: runhidden waituntilterminated
-Filename: "{sys}\regsvr32.exe";      Parameters: "/s ""{app}\BanglaPhonetic_arm64.dll""";  Check: IsArm64Win; Flags: runhidden waituntilterminated
+Filename: "{sys}\regsvr32.exe";      Parameters: "/s ""{app}\BanglaPhonetic_arm64.dll""";  Check: Arm64DllReg; Flags: runhidden waituntilterminated
 Filename: "{syswow64}\regsvr32.exe"; Parameters: "/s ""{app}\BanglaPhonetic_x86.dll""";    Check: Is64Win;    Flags: runhidden waituntilterminated
 Filename: "{sys}\regsvr32.exe";      Parameters: "/s ""{app}\BanglaPhonetic_x86.dll""";    Check: IsX86Win;   Flags: runhidden waituntilterminated
 ; Offer to open the typing guide after a non-silent install.
@@ -64,7 +64,7 @@ Filename: "{app}\KEYMAP.html"; Description: "Open the typing guide"; Flags: post
 
 [UninstallRun]
 Filename: "{sys}\regsvr32.exe";      Parameters: "/u /s ""{app}\BanglaPhonetic_x64.dll""";   Check: IsX64Win;   RunOnceId: "UnregX64";   Flags: runhidden waituntilterminated
-Filename: "{sys}\regsvr32.exe";      Parameters: "/u /s ""{app}\BanglaPhonetic_arm64.dll""";  Check: IsArm64Win; RunOnceId: "UnregArm64"; Flags: runhidden waituntilterminated
+Filename: "{sys}\regsvr32.exe";      Parameters: "/u /s ""{app}\BanglaPhonetic_arm64.dll""";  Check: Arm64DllReg; RunOnceId: "UnregArm64"; Flags: runhidden waituntilterminated
 Filename: "{syswow64}\regsvr32.exe"; Parameters: "/u /s ""{app}\BanglaPhonetic_x86.dll""";    Check: Is64Win;    RunOnceId: "UnregX86Wow"; Flags: runhidden waituntilterminated
 Filename: "{sys}\regsvr32.exe";      Parameters: "/u /s ""{app}\BanglaPhonetic_x86.dll""";    Check: IsX86Win;   RunOnceId: "UnregX86";   Flags: runhidden waituntilterminated
 
@@ -87,4 +87,10 @@ end;
 function IsX86Win: Boolean;
 begin
   Result := ProcessorArchitecture = paX86;
+end;
+
+// Register the ARM64 DLL only if it was actually packaged (ARM64 build present).
+function Arm64DllReg: Boolean;
+begin
+  Result := IsArm64Win and FileExists(ExpandConstant('{app}\BanglaPhonetic_arm64.dll'));
 end;

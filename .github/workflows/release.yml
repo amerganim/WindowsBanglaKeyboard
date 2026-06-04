@@ -1,0 +1,86 @@
+name: Release
+
+# Runs when you push a version tag (e.g. v0.10.2), or manually.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version without the leading v (e.g. 0.10.2)'
+        required: true
+
+permissions:
+  contents: write   # create releases and push the refreshed winget manifest
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version
+        id: ver
+        shell: pwsh
+        run: |
+          if ('${{ github.ref_type }}' -eq 'tag') { $v = '${{ github.ref_name }}'.TrimStart('v') }
+          else { $v = '${{ github.event.inputs.version }}' }
+          "version=$v" >> $env:GITHUB_OUTPUT
+          Write-Host "Version: $v"
+
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
+
+      - name: Import code-signing certificate (optional)
+        shell: pwsh
+        env:
+          PFX_BASE64: ${{ secrets.CODESIGN_PFX_BASE64 }}
+          PFX_PASSWORD: ${{ secrets.CODESIGN_PFX_PASSWORD }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:PFX_BASE64)) {
+            Write-Host 'No CODESIGN_PFX_BASE64 secret set; building unsigned.'
+            exit 0
+          }
+          $pfx = Join-Path $env:RUNNER_TEMP 'cs.pfx'
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:PFX_BASE64))
+          $pw = ConvertTo-SecureString $env:PFX_PASSWORD -AsPlainText -Force
+          Import-PfxCertificate -FilePath $pfx -CertStoreLocation Cert:\CurrentUser\My -Password $pw | Out-Null
+          Remove-Item $pfx
+          Write-Host 'Code-signing certificate imported.'
+
+      - name: Build + package (+ sign if cert present)
+        shell: pwsh
+        run: .\scripts\release.ps1 -Version ${{ steps.ver.outputs.version }}
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.version }}
+          name: Amader Bangla Keyboard ${{ steps.ver.outputs.version }}
+          body_path: docs/RELEASE_NOTES.md
+          files: |
+            release/AmaderBanglaKeyboard-${{ steps.ver.outputs.version }}.zip
+            release/AmaderBanglaKeyboard-Setup-${{ steps.ver.outputs.version }}.exe
+
+      - name: Refresh winget manifest on main
+        shell: pwsh
+        run: |
+          $v = '${{ steps.ver.outputs.version }}'
+          $setup = "release/AmaderBanglaKeyboard-Setup-$v.exe"
+          if (-not (Test-Path $setup)) { Write-Host 'No Setup.exe; skipping winget refresh.'; exit 0 }
+          $hash = (Get-FileHash $setup -Algorithm SHA256).Hash
+          git config user.name  'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin main
+          git checkout -B main origin/main
+          .\scripts\update-winget.ps1 -Version $v -Sha256 $hash
+          git add winget
+          if (git status --porcelain winget) {
+            git commit -m "winget: bump to $v [skip ci]"
+            git push origin main
+          } else {
+            Write-Host 'winget manifest already current.'
+          }

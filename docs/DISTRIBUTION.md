@@ -1,6 +1,29 @@
 # Distributing Amader Bangla Keyboard
 
-## 1. Build the release package
+## 0. Automated releases (GitHub Actions)
+
+`.github/workflows/release.yml` does everything below automatically when you
+push a version tag:
+
+```bat
+REM bump installer\install.ps1 $Version + docs\RELEASE_NOTES.md, commit, then:
+git tag v0.10.2
+git push origin v0.10.2
+```
+
+The workflow (on a `windows-latest` runner) builds x64/x86/ARM64, signs them
+**if** signing secrets are set, builds the zip + `Setup.exe`, creates the
+GitHub Release with both assets, and commits the refreshed `winget\` manifest
+back to `main`. Manual runs are possible via *Actions → Release → Run workflow*.
+
+**Optional signing secrets** (repo *Settings → Secrets and variables →
+Actions*): `CODESIGN_PFX_BASE64` (your .pfx as base64) and
+`CODESIGN_PFX_PASSWORD`. Without them, releases are simply unsigned. To submit
+the manifest to the official winget repo automatically, you can later add the
+`winget-releaser` action + a PAT; the first submission to `microsoft/winget-pkgs`
+is done by hand.
+
+## 1. Build the release package (manual)
 
 ```bat
 powershell -ExecutionPolicy Bypass -File scripts\release.ps1
