@@ -1,4 +1,9 @@
-# Amader Bangla Keyboard 0.10.1
+# Amader Bangla Keyboard 0.10.2
+
+Adds a single-file **Setup.exe** installer (Inno Setup), a winget manifest, and
+an automated build/release pipeline. Same keyboard features as 0.10.1.
+
+
 
 A Windows phonetic Bangla keyboard (TSF input method). Type romanized Bangla in
 any app; switch with Win+Space.
