@@ -6,10 +6,22 @@
 powershell -ExecutionPolicy Bypass -File scripts\release.ps1
 ```
 
-This builds x64 + x86 (and **ARM64** if those build tools are installed — see
-below), stages `dist\`, and produces `release\AmaderBanglaKeyboard-<version>.zip`
-plus its SHA-256. That zip is the thing you hand to users: they extract it and
-run `install.ps1`.
+This builds x64 + x86 + **ARM64** (if those build tools are installed), stages
+`dist\`, and produces, in `release\`:
+
+- `AmaderBanglaKeyboard-<ver>.zip` — extract + run `install.ps1` (the script
+  installer).
+- `AmaderBanglaKeyboard-Setup-<ver>.exe` — a **single-file installer** built
+  with Inno Setup (`installer\setup.iss`). This is the artifact for winget and
+  the Microsoft Store. It registers the architecture-matching DLL(s), adds a
+  Start-Menu guide shortcut, and supports silent install:
+
+  ```bat
+  AmaderBanglaKeyboard-Setup-<ver>.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+  ```
+
+  (Uninstall silently via its `unins000.exe /VERYSILENT`, or Apps & features.)
+  Building the .exe needs Inno Setup: `winget install JRSoftware.InnoSetup`.
 
 ## 2. (Important) Code-sign the binaries
 
@@ -35,7 +47,12 @@ distribution, sign them with an Authenticode certificate.
   Set-AuthenticodeSignature dist\uninstall.ps1 $cert -TimestampServer http://timestamp.digicert.com
   ```
 
-Sign **before** zipping (or re-zip after signing).
+- **Sign the installer too:** sign the DLLs in `dist\` first, then build
+  `Setup.exe` (so the packaged DLLs are signed), then sign the resulting
+  `Setup.exe` with the same `signtool` command.
+
+Sign **before** zipping / before building the Setup.exe (and sign the Setup.exe
+after).
 
 ## 3. Publish
 
@@ -57,13 +74,34 @@ gh release create v0.9.1 release\AmaderBanglaKeyboard-0.9.1.zip ^
 Or do it on github.com → *Releases* → *Draft a new release* → pick the tag →
 upload the zip.
 
-**winget (optional):** submit a manifest to
-`microsoft/winget-pkgs` pointing at the GitHub release asset so users can
-`winget install`. Easiest once the installer is a signed `.exe`/`.msi`.
+**winget:** a ready manifest is in `winget\` (points at the Setup.exe release
+asset). After each release, update the version + `InstallerSha256` in
+`winget\Amerganim.AmaderBanglaKeyboard.installer.yaml`, validate, and submit:
 
-**Microsoft Store / MSIX (optional, widest reach + auto-update):** repackage as
-**MSIX** and declare the input method in the manifest. More work and Store
-policy review, but Store handles signing and updates.
+```bat
+winget validate --manifest winget
+winget install --manifest winget         REM optional local test (admin)
+REM submit a PR to microsoft/winget-pkgs (easiest with wingetcreate):
+wingetcreate submit --token <gh-token> winget
+```
+
+**Microsoft Store (Win32 app — the right path for this keyboard):** a TSF input
+method needs machine-wide registration and to load into every process, which
+the **MSIX sandbox cannot do** — so do *not* package it as MSIX. Instead submit
+the **`Setup.exe`** as a Win32 (EXE) app:
+
+1. Create a (free for individuals) **Partner Center** developer account and a
+   new app reservation for the name "Amader Bangla Keyboard".
+2. Choose packaging type **EXE/MSI (Win32)**, upload `Setup.exe`.
+3. Provide the silent **install** command
+   `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART` and the **uninstall** command
+   (`"%ProgramFiles%\BanglaPhonetic\unins000.exe" /VERYSILENT`), plus the return
+   codes (0 = success, 3010 = success/restart-needed).
+4. The Store **signs the package** for you; you still get smoother trust by
+   signing `Setup.exe` yourself (section 2).
+5. Note for review: this app is an **input method (IME)** that processes
+   keystrokes — expect extra review and a clear privacy statement (it sends no
+   data anywhere; suggestions/learning are fully local).
 
 ## 4. Building the ARM64 DLL
 

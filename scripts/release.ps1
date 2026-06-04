@@ -32,3 +32,23 @@ Write-Host ''
 Write-Host "Created $zip" -ForegroundColor Green
 "Contents:"; (Get-ChildItem $dist | Select-Object -ExpandProperty Name) -join ', '
 Get-FileHash $zip -Algorithm SHA256 | Format-List Algorithm, Hash
+
+# Also build the single-file Setup.exe (for direct download, winget, Store)
+# if Inno Setup is installed.
+$iscc = @(
+    "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe",
+    "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
+    "$env:ProgramFiles\Inno Setup 6\ISCC.exe"
+) | Where-Object { Test-Path $_ } | Select-Object -First 1
+if ($iscc) {
+    Write-Host ''
+    Write-Host 'Building Setup.exe (Inno Setup)...'
+    & $iscc "/DMyAppVersion=$Version" (Join-Path $root 'installer\setup.iss') | Select-Object -Last 2
+    $setup = Join-Path $rel "AmaderBanglaKeyboard-Setup-$Version.exe"
+    if (Test-Path $setup) {
+        Write-Host "Created $setup" -ForegroundColor Green
+        Get-FileHash $setup -Algorithm SHA256 | Format-List Algorithm, Hash
+    }
+} else {
+    Write-Warning 'Inno Setup (ISCC.exe) not found; skipped Setup.exe. Install with: winget install JRSoftware.InnoSetup'
+}
