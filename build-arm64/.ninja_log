@@ -1,0 +1,18 @@
+# ninja log v7
+66	864	8022922772584305	app/CMakeFiles/BanglaPhonetic.dir/src/dllmain.cpp.obj	cb856dc369be980b
+73	876	8022922772653095	app/CMakeFiles/BanglaPhonetic.dir/src/Globals.cpp.obj	1a88eda6707ca0c8
+94	1029	8022922772820251	app/CMakeFiles/BanglaPhonetic.dir/src/DisplayAttribute.cpp.obj	9dc2e58c9c5cd61d
+114	1406	8022922773069281	app/CMakeFiles/BanglaPhonetic.dir/src/Register.cpp.obj	b4f6ec6a3523069b
+80	1502	8022922772727379	app/CMakeFiles/BanglaPhonetic.dir/src/ClassFactory.cpp.obj	cbb748af867f05b9
+100	1611	8022922772921229	app/CMakeFiles/BanglaPhonetic.dir/src/LangBarButton.cpp.obj	40bcda82ea41a028
+108	1694	8022922772989308	app/CMakeFiles/BanglaPhonetic.dir/src/CandidateWindow.cpp.obj	ca8bb1173d75e39e
+61	1914	8022922772528735	harness/CMakeFiles/bnphonetic_harness.dir/main.cpp.obj	24366a6818fe7a4f
+44	2283	8022922772318311	engine/CMakeFiles/bnphonetic.dir/src/Transliterator.cpp.obj	fb6978b001f5b07b
+51	2396	8022922772423267	engine/CMakeFiles/bnphonetic.dir/src/Suggest.cpp.obj	3c193e438b0b2641
+56	2411	8022922772472562	tests/CMakeFiles/engine_tests.dir/test_transliterator.cpp.obj	8d33ec400b184d7e
+87	2474	8022922772794077	app/CMakeFiles/BanglaPhonetic.dir/src/TextService.cpp.obj	ec306907f47b8fe3
+2396	2533	8022922795826863	engine/bnphonetic.lib	e96ae72aa6cee8cb
+2541	2711	8022922797319214	harness/bnphonetic_harness.exe	9fffa951198aee50
+2534	2717	8022922797162683	tests/engine_tests.exe	b203a6c34634473e
+2547	2730	8022922798952915	app/BanglaPhonetic.dll	88a56a7e2400b9fa
+2547	2730	8022922798952915	app/BanglaPhonetic.lib	88a56a7e2400b9fa

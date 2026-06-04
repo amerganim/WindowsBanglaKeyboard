@@ -31,7 +31,8 @@ portable, unit-tested phonetic engine at its core.
   commit, Esc dismiss.
 - ✅ **Coverage tested** on a Prothom Alo article: 100% of characters typeable;
   84% of distinct words have a suggestion.
-- ⏳ Next: code signing; ARM64 binary (build is wired).
+- ✅ **x64 + x86 + ARM64** binaries; architecture-aware installer.
+- ⏳ Next: code signing.
 
 The bundled `words.tsv` is derived from
 [google/language-resources](https://github.com/google/language-resources) (bn),

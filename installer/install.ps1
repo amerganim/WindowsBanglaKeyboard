@@ -50,7 +50,7 @@ function Install-Component([string]$srcName, [string]$regsvr, [string]$label) {
 
 $AppName   = 'BanglaPhonetic'
 $Display   = 'Amader Bangla Keyboard'
-$Version   = '0.10.0'
+$Version   = '0.10.1'
 $Publisher = 'WindowsBanglaKeyboard'
 
 $src  = $PSScriptRoot
