@@ -91,7 +91,12 @@ Special consonant forms:
 ## Conjuncts (যুক্তাক্ষর / juktakkhor)
 
 To make a conjunct, just type the consonants **with no vowel between them** —
-the keyboard joins them with a hasanta (্) automatically.
+the keyboard joins them with a hasanta (্) automatically. Because the rule is
+general, **every** standard conjunct is typeable: all **297** conjuncts from the
+[Wikibooks](https://bn.wikibooks.org/wiki/বাংলা_যুক্তাক্ষর) and
+[Wiktionary](https://bn.wiktionary.org/wiki/পরিশিষ্ট:বাংলা_যুক্তবর্ণের_তালিকা)
+lists were verified against the engine (297/297). The bundled typing guide
+(`KEYMAP.html`, opened from the Start Menu) lists each one with its keystrokes.
 
 | Conjunct | Type | Made of |
 |:--------:|:----:|---------|
