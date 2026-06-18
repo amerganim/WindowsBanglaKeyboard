@@ -1,0 +1,40 @@
+name: Test Build (signing branch)
+
+# Verification pipeline for the ci-signing branch: builds the full package
+# (x64/x86/ARM64 + Setup.exe) and uploads the artifacts so we can confirm the
+# build — and later the signing — works, WITHOUT publishing a release or
+# touching the winget manifest.
+on:
+  push:
+    branches: [ci-signing]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
+
+      - name: Build + package (Setup.exe + zip)
+        shell: pwsh
+        run: .\scripts\release.ps1 -Version 0.0.0-ci
+
+      - name: Show what was produced
+        shell: pwsh
+        run: Get-ChildItem release | Select-Object Name,Length | Format-Table -AutoSize
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: amaderbangla-ci-build
+          path: |
+            release/AmaderBanglaKeyboard-0.0.0-ci.zip
+            release/AmaderBanglaKeyboard-Setup-0.0.0-ci.exe
+          if-no-files-found: error
