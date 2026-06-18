@@ -1,9 +1,9 @@
 name: Test Build (signing branch)
 
 # Verification pipeline for the ci-signing branch: builds the full package
-# (x64/x86/ARM64 + Setup.exe) and uploads the artifacts so we can confirm the
-# build — and later the signing — works, WITHOUT publishing a release or
-# touching the winget manifest.
+# (x64/x86/ARM64 + Setup.exe), then signs the Setup.exe via SignPath IF the
+# SignPath secrets are configured. No release is published and the winget
+# manifest is not touched. Artifacts are uploaded for inspection.
 on:
   push:
     branches: [ci-signing]
@@ -11,6 +11,11 @@ on:
 
 permissions:
   contents: read
+
+env:
+  # 'true' only when the SignPath token secret is set, so the signing steps
+  # stay skipped (and the build still passes) until onboarding is complete.
+  HAS_SIGNPATH: ${{ secrets.SIGNPATH_API_TOKEN != '' }}
 
 jobs:
   build:
@@ -30,11 +35,38 @@ jobs:
         shell: pwsh
         run: Get-ChildItem release | Select-Object Name,Length | Format-Table -AutoSize
 
-      - name: Upload build artifacts
+      - name: Upload unsigned Setup.exe (for signing + inspection)
+        id: unsigned
         uses: actions/upload-artifact@v4
         with:
-          name: amaderbangla-ci-build
-          path: |
-            release/AmaderBanglaKeyboard-0.0.0-ci.zip
-            release/AmaderBanglaKeyboard-Setup-0.0.0-ci.exe
+          name: unsigned-setup
+          path: release/AmaderBanglaKeyboard-Setup-0.0.0-ci.exe
+          if-no-files-found: error
+
+      - name: Sign Setup.exe with SignPath
+        if: env.HAS_SIGNPATH == 'true'
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ secrets.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: amaderbanglakeyboard
+          signing-policy-slug: test-signing
+          artifact-configuration-slug: setup-exe
+          github-artifact-id: ${{ steps.unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed
+
+      - name: Upload SIGNED Setup.exe
+        if: env.HAS_SIGNPATH == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-setup
+          path: signed/**/*.exe
+          if-no-files-found: error
+
+      - name: Upload zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: zip
+          path: release/AmaderBanglaKeyboard-0.0.0-ci.zip
           if-no-files-found: error
