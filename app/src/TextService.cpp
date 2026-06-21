@@ -202,7 +202,8 @@ STDMETHODIMP CTextService::Deactivate() {
 // ---- Composition ----
 HRESULT CTextService::UpdateComposition(ITfContext* pic) {
   if (pic == nullptr) return E_INVALIDARG;
-  const std::wstring text = Utf8ToUtf16(bnphonetic::Transliterate(buffer_));
+  const std::wstring text =
+      Utf8ToUtf16(bnphonetic::Transliterate(buffer_, /*smart=*/true));
 
   CEditSession* session = new (std::nothrow) CEditSession(
       [this, pic, text](TfEditCookie ec) -> HRESULT {
@@ -356,7 +357,7 @@ HRESULT CTextService::EndComposition(ITfContext* pic,
 }
 
 void CTextService::RefreshCandidates(ITfContext* /*pic*/) {
-  suggestions_ = suggester_.Suggest(buffer_);
+  suggestions_ = suggester_.Suggest(buffer_, 9, /*smart=*/true);
   // Only show the list when there are real alternatives beyond the literal
   // transliteration (element 0).
   if (suggestions_.size() > 1 && caret_rect_valid_) {

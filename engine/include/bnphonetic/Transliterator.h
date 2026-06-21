@@ -16,6 +16,22 @@ namespace bnphonetic {
 // This function is pure and has no Windows/COM dependencies.
 std::string Transliterate(const std::string& latin);
 
+// Smart-conjunct overload. When `smart` is true, two adjacent consonants are
+// joined into a conjunct (hasanta) only if the cluster is a real juktakkhor
+// (ref র্ and ya-/ra-phala still join productively); otherwise each consonant
+// keeps its inherent vowel and stays separate (so `zkhn` -> যখন, not য্খ্ন). It
+// also applies pronunciation spellings (`gg` -> জ্ঞ, `n` before চ/ছ/জ/ঝ -> ঞ).
+// Uses the built-in conjunct list unless SetConjunctList() overrides it.
+std::string Transliterate(const std::string& latin, bool smart);
+
+// Replace the conjunct list used by smart mode (UTF-8, whitespace-separated
+// conjuncts; lines starting with '#' ignored). Optional — a built-in list ships
+// with the engine. Thread-safe.
+void SetConjunctList(const std::string& list_text);
+
+// The built-in conjunct list as individual tokens (for tests/inspection).
+std::vector<std::string> BuiltinConjuncts();
+
 // Returns true if `c` is a character the transliterator consumes as phonetic
 // input (an ASCII letter, digit, or one of the sign keys such as '.', '^',
 // ':'). The input method uses this to decide which keystrokes to buffer into

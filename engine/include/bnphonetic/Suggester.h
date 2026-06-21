@@ -37,8 +37,10 @@ class Suggester {
   // Suggestions for `prefix`: element 0 is always the literal transliteration
   // of `prefix`; the rest are dictionary words whose romanization starts with
   // `prefix` (case-insensitive), best-ranked first, de-duplicated.
+  // `smart` enables smart-conjunct transliteration of the literal (element 0).
   std::vector<std::string> Suggest(const std::string& prefix,
-                                   size_t max_results = 9) const;
+                                   size_t max_results = 9,
+                                   bool smart = false) const;
 
  private:
   struct Entry {

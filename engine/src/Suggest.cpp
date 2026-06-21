@@ -149,11 +149,12 @@ void Suggester::RecordUsage(const std::string& bangla) {
 }
 
 std::vector<std::string> Suggester::Suggest(const std::string& prefix,
-                                            size_t max_results) const {
+                                            size_t max_results,
+                                            bool smart) const {
   std::vector<std::string> out;
   if (prefix.empty() || max_results == 0) return out;
 
-  const std::string literal = Transliterate(prefix);  // element 0: as typed
+  const std::string literal = Transliterate(prefix, smart);  // element 0: as typed
   out.push_back(literal);
 
   std::string lower_prefix;
