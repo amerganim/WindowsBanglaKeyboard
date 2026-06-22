@@ -326,6 +326,39 @@ int main() {
     }
   }
 
+  // Forgiving (ambiguity-tolerant) suggestions: a phonetically ambiguous
+  // spelling still finds the word (short i -> ঈ, s -> শ, th -> ঠ, t -> ট).
+  {
+    bnphonetic::Suggester s;
+    s.LoadWordList("নদী\t50\nআকাশ\t40\nমাঠ\t30\nছাত্র\t20\n");
+    auto v1 = s.Suggest("nodi", 9, true);   // নদি -> fuzzy নদী
+    auto v2 = s.Suggest("akas", 9, true);   // আকাস -> fuzzy আকাশ
+    auto v3 = s.Suggest("math", 9, true);   // মাথ  -> fuzzy মাঠ
+    auto v4 = s.Suggest("chhatro", 9, true);  // exact still works
+    ++g_total;
+    if (Contains(v1, "নদী") && Contains(v2, "আকাশ") && Contains(v3, "মাঠ") &&
+        Contains(v4, "ছাত্র")) {
+      std::cout << "ok  : forgiving suggestions (i/I, s/শ, th/ঠ) + exact\n";
+    } else {
+      ++g_failures;
+      std::cerr << "FAIL: forgiving suggestions\n";
+    }
+    // Exact matches still rank ahead of fuzzy ones.
+    bnphonetic::Suggester s2;
+    s2.LoadWordList("আকাশছোঁয়া\t90\nআকাষ\t10\n");  // exact prefix vs fuzzy
+    auto v5 = s2.Suggest("akash", 9, true);  // literal আকাশ
+    ++g_total;
+    // exact (আকাশছোঁয়া starts with আকাশ) must come before fuzzy (আকাষ).
+    auto pa = std::find(v5.begin(), v5.end(), "আকাশছোঁয়া");
+    auto pf = std::find(v5.begin(), v5.end(), "আকাষ");
+    if (pa != v5.end() && (pf == v5.end() || pa < pf)) {
+      std::cout << "ok  : exact suggestion ranks before fuzzy\n";
+    } else {
+      ++g_failures;
+      std::cerr << "FAIL: exact-before-fuzzy ranking\n";
+    }
+  }
+
   std::cout << "\n" << (g_total - g_failures) << "/" << g_total
             << " checks passed\n";
   return g_failures == 0 ? 0 : 1;

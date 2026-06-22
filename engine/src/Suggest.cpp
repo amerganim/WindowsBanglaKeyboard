@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstdint>
 #include <cstdlib>
 #include <sstream>
 
@@ -68,6 +69,64 @@ std::string Trim(const std::string& s) {
 // Each committed use is worth this much static-frequency weight.
 const int kLearnWeight = 40;
 
+// Collapse a Bangla code point onto a canonical one for fuzzy matching, so
+// common phonetic ambiguities are forgiven: long/short vowels (ঈ→ই, ঊ→উ and
+// their kars), sibilants (শ/ষ→স), and retroflex→dental (ট→ত, ঠ→থ, ড→দ, ঢ→ধ,
+// ণ→ন), plus য→জ. Everything else is unchanged.
+uint32_t CollapseCp(uint32_t cp) {
+  switch (cp) {
+    case 0x0988: return 0x0987;  // ঈ → ই
+    case 0x09C0: return 0x09BF;  // ী → ি
+    case 0x098A: return 0x0989;  // ঊ → উ
+    case 0x09C2: return 0x09C1;  // ূ → ু
+    case 0x09B6: return 0x09B8;  // শ → স
+    case 0x09B7: return 0x09B8;  // ষ → স
+    case 0x099F: return 0x09A4;  // ট → ত
+    case 0x09A0: return 0x09A5;  // ঠ → থ
+    case 0x09A1: return 0x09A6;  // ড → দ
+    case 0x09A2: return 0x09A7;  // ঢ → ধ
+    case 0x09A3: return 0x09A8;  // ণ → ন
+    case 0x09AF: return 0x099C;  // য → জ
+    default: return cp;
+  }
+}
+
+// Fuzzy-normalize a UTF-8 Bangla string (decode -> collapse -> re-encode).
+std::string NormalizeFuzzy(const std::string& s) {
+  std::string out;
+  out.reserve(s.size());
+  size_t i = 0;
+  while (i < s.size()) {
+    unsigned char c = static_cast<unsigned char>(s[i]);
+    uint32_t cp;
+    int extra;
+    if (c < 0x80) { cp = c; extra = 0; }
+    else if ((c >> 5) == 0x6) { cp = c & 0x1F; extra = 1; }
+    else if ((c >> 4) == 0xE) { cp = c & 0x0F; extra = 2; }
+    else { cp = c & 0x07; extra = 3; }
+    ++i;
+    for (int k = 0; k < extra && i < s.size(); ++k, ++i)
+      cp = (cp << 6) | (static_cast<unsigned char>(s[i]) & 0x3F);
+    cp = CollapseCp(cp);
+    if (cp < 0x80) {
+      out += static_cast<char>(cp);
+    } else if (cp < 0x800) {
+      out += static_cast<char>(0xC0 | (cp >> 6));
+      out += static_cast<char>(0x80 | (cp & 0x3F));
+    } else if (cp < 0x10000) {
+      out += static_cast<char>(0xE0 | (cp >> 12));
+      out += static_cast<char>(0x80 | ((cp >> 6) & 0x3F));
+      out += static_cast<char>(0x80 | (cp & 0x3F));
+    } else {
+      out += static_cast<char>(0xF0 | (cp >> 18));
+      out += static_cast<char>(0x80 | ((cp >> 12) & 0x3F));
+      out += static_cast<char>(0x80 | ((cp >> 6) & 0x3F));
+      out += static_cast<char>(0x80 | (cp & 0x3F));
+    }
+  }
+  return out;
+}
+
 }  // namespace
 
 Suggester::Suggester() {
@@ -117,6 +176,14 @@ void Suggester::LoadWordList(const std::string& tsv) {
   }
   std::sort(words_.begin(), words_.end(),
             [](const Word& a, const Word& b) { return a.bangla < b.bangla; });
+
+  // Rebuild the fuzzy index (sorted by the normalized form).
+  words_fuzzy_.clear();
+  words_fuzzy_.reserve(words_.size());
+  for (const Word& w : words_)
+    words_fuzzy_.push_back({NormalizeFuzzy(w.bangla), w.bangla, w.freq});
+  std::sort(words_fuzzy_.begin(), words_fuzzy_.end(),
+            [](const FuzzyWord& a, const FuzzyWord& b) { return a.norm < b.norm; });
 }
 
 void Suggester::LoadLearnedData(const std::string& tsv) {
@@ -185,26 +252,52 @@ std::vector<std::string> Suggester::Suggest(const std::string& prefix,
     }
   }
 
+  // Forgiving pass: words whose fuzzy-normalized form shares the normalized
+  // prefix (collapsing ambiguous spellings). Only for a prefix of real length,
+  // and only words not already matched exactly — exact matches rank first.
+  std::unordered_map<std::string, int> fuzzy;
+  if (prefix.size() >= 3 && !literal.empty() && !words_fuzzy_.empty()) {
+    const std::string norm = NormalizeFuzzy(literal);
+    if (!norm.empty()) {
+      auto lo = std::lower_bound(
+          words_fuzzy_.begin(), words_fuzzy_.end(), norm,
+          [](const FuzzyWord& w, const std::string& p) { return w.norm < p; });
+      for (auto it = lo; it != words_fuzzy_.end(); ++it) {
+        if (it->norm.compare(0, norm.size(), norm) != 0) break;
+        if (it->bangla == literal || cand.count(it->bangla)) continue;
+        auto f = fuzzy.find(it->bangla);
+        if (f == fuzzy.end() || it->freq > f->second) fuzzy[it->bangla] = it->freq;
+      }
+    }
+  }
+
   struct Scored {
     const std::string* bangla;
     int score;
   };
-  std::vector<Scored> scored;
-  scored.reserve(cand.size());
-  for (const auto& kv : cand) {
-    if (kv.first == literal) continue;  // already element 0
-    int score = kv.second;
-    auto l = learned_.find(kv.first);
-    if (l != learned_.end()) score += l->second * kLearnWeight;
-    scored.push_back({&kv.first, score});
-  }
-  std::stable_sort(scored.begin(), scored.end(),
-                   [](const Scored& a, const Scored& b) {
-                     if (a.score != b.score) return a.score > b.score;
-                     return *a.bangla < *b.bangla;  // stable, deterministic
-                   });
+  auto rank = [&](const std::unordered_map<std::string, int>& m) {
+    std::vector<Scored> v;
+    v.reserve(m.size());
+    for (const auto& kv : m) {
+      if (kv.first == literal) continue;  // already element 0
+      int score = kv.second;
+      auto l = learned_.find(kv.first);
+      if (l != learned_.end()) score += l->second * kLearnWeight;
+      v.push_back({&kv.first, score});
+    }
+    std::stable_sort(v.begin(), v.end(), [](const Scored& a, const Scored& b) {
+      if (a.score != b.score) return a.score > b.score;
+      return *a.bangla < *b.bangla;  // deterministic
+    });
+    return v;
+  };
 
-  for (const Scored& s : scored) {
+  // Exact matches first, then forgiving matches.
+  for (const Scored& s : rank(cand)) {
+    if (out.size() >= max_results) break;
+    out.push_back(*s.bangla);
+  }
+  for (const Scored& s : rank(fuzzy)) {
     if (out.size() >= max_results) break;
     out.push_back(*s.bangla);
   }

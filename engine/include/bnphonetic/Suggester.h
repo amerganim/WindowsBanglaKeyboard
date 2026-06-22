@@ -52,8 +52,16 @@ class Suggester {
     std::string bangla;  // matched by Bangla prefix
     int freq;
   };
+  // Same words keyed by a fuzzy-normalized form (long/short vowels, sibilants
+  // and retroflex/dental collapsed) for ambiguity-tolerant matching.
+  struct FuzzyWord {
+    std::string norm;    // NormalizeFuzzy(bangla); sort key
+    std::string bangla;  // the actual suggestion
+    int freq;
+  };
   std::vector<Entry> entries_;          // roman-keyed dictionary
   std::vector<Word> words_;             // Bangla word list, sorted by `bangla`
+  std::vector<FuzzyWord> words_fuzzy_;  // same, sorted by `norm`
   std::unordered_map<std::string, int> learned_;  // bangla -> use count
 };
 
