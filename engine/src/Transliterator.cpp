@@ -44,6 +44,7 @@ const std::unordered_map<std::string, Unit>& Table() {
       {"gh", {Kind::Consonant, "ঘ", ""}},
       {"Ng", {Kind::Consonant, "ঙ", ""}},  // velar-nasal letter ঙ
       {"NG", {Kind::Consonant, "ঞ", ""}},  // letter ঞ (ny)
+      {"c", {Kind::Consonant, "চ", ""}},
       {"ch", {Kind::Consonant, "চ", ""}},
       {"chh", {Kind::Consonant, "ছ", ""}},
       {"j", {Kind::Consonant, "জ", ""}},
@@ -270,20 +271,38 @@ std::vector<Seg> Tokenize(const std::string& latin) {
   std::vector<Seg> segs;
   const auto& table = Table();
   const size_t n = latin.size();
-  for (size_t i = 0; i < n;) {
-    const Unit* unit = nullptr;
-    int matched_len = 0;
+
+  // Greedy longest match at i; when `lower` is set the candidate is lowercased
+  // before lookup (the uppercase-fallback pass).
+  auto match_at = [&](size_t i, bool lower) -> std::pair<const Unit*, int> {
     for (int len = kMaxKeyLen; len >= 1; --len) {
       if (i + static_cast<size_t>(len) > n) continue;
-      auto it = table.find(latin.substr(i, len));
-      if (it != table.end()) { unit = &it->second; matched_len = len; break; }
+      std::string key = latin.substr(i, len);
+      if (lower)
+        for (char& ch : key)
+          if (ch >= 'A' && ch <= 'Z') ch = static_cast<char>(ch - 'A' + 'a');
+      auto it = table.find(key);
+      if (it != table.end()) return {&it->second, len};
     }
-    if (unit == nullptr) {
-      segs.push_back({nullptr, std::string(1, latin[i])});
+    return {nullptr, 0};
+  };
+
+  for (size_t i = 0; i < n;) {
+    auto m = match_at(i, /*lower=*/false);
+    // An uppercase letter with no scheme meaning falls back to its lowercase
+    // key (so `C`->চ), and otherwise passes through as lowercase — never as a
+    // leaked uppercase English letter.
+    if (m.first == nullptr && latin[i] >= 'A' && latin[i] <= 'Z')
+      m = match_at(i, /*lower=*/true);
+
+    if (m.first == nullptr) {
+      char c = latin[i];
+      if (c >= 'A' && c <= 'Z') c = static_cast<char>(c - 'A' + 'a');
+      segs.push_back({nullptr, std::string(1, c)});
       ++i;
     } else {
-      segs.push_back({unit, std::string()});
-      i += static_cast<size_t>(matched_len);
+      segs.push_back({m.first, std::string()});
+      i += static_cast<size_t>(m.second);
     }
   }
   return segs;

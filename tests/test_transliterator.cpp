@@ -201,6 +201,18 @@ int main() {
   // Unknown characters (space/punctuation) pass through and reset context.
   Check("ami tumi", "আমি তুমি");
 
+  // `c` maps to চ; an uppercase letter with no scheme meaning falls back to its
+  // lowercase key (no leaked English capital): C -> চ, Bistarito -> বিস্তারিত.
+  Check("c", "চ");
+  Check("C", "চ");
+  Check("Cha", "চা");
+  Check("Bistarito", "বিস্তারিত");
+  Check("Q", "q");  // truly unknown letter passes through lowercased
+
+  // Pronunciation conjunct (smart): biggan -> বিজ্ঞান, not বিগ্গান.
+  CheckSmart("biggan", "বিজ্ঞান");
+  CheckSmart("C", "চ");
+
   // Suggestions: element 0 is always the literal transliteration; dictionary
   // words sharing the prefix follow.
   CheckFirst("ami", "আমি");
