@@ -14,12 +14,12 @@ ProductCode: '{A3F1C2E4-5B6D-4E7F-9A0B-1C2D3E4F5A6B}_is1'
 Installers:
   - Architecture: x64
     InstallerUrl: https://github.com/amerganim/WindowsBanglaKeyboard/releases/download/v0.11.0/AmaderBanglaKeyboard-Setup-0.11.0.exe
-    InstallerSha256: FFD6E9F4186EA5ECF799F8A9794DC83D8D4B5FBB1805D3EA92A271A26D354DE6
+    InstallerSha256: 2F11819046A1F7771C6C61893230C7F06BCFA2B8049DE62EDA273CE356EC5383
   - Architecture: arm64
     InstallerUrl: https://github.com/amerganim/WindowsBanglaKeyboard/releases/download/v0.11.0/AmaderBanglaKeyboard-Setup-0.11.0.exe
-    InstallerSha256: FFD6E9F4186EA5ECF799F8A9794DC83D8D4B5FBB1805D3EA92A271A26D354DE6
+    InstallerSha256: 2F11819046A1F7771C6C61893230C7F06BCFA2B8049DE62EDA273CE356EC5383
   - Architecture: x86
     InstallerUrl: https://github.com/amerganim/WindowsBanglaKeyboard/releases/download/v0.11.0/AmaderBanglaKeyboard-Setup-0.11.0.exe
-    InstallerSha256: FFD6E9F4186EA5ECF799F8A9794DC83D8D4B5FBB1805D3EA92A271A26D354DE6
+    InstallerSha256: 2F11819046A1F7771C6C61893230C7F06BCFA2B8049DE62EDA273CE356EC5383
 ManifestType: installer
 ManifestVersion: 1.6.0
