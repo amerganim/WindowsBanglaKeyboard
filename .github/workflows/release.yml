@@ -16,6 +16,8 @@ permissions:
 jobs:
   release:
     runs-on: windows-latest
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -84,3 +86,26 @@ jobs:
           } else {
             Write-Host 'winget manifest already current.'
           }
+
+  # Auto-submit the update to microsoft/winget-pkgs. Runs only if a WINGET_TOKEN
+  # secret (a GitHub PAT with public_repo scope) is set; otherwise it is skipped
+  # and you submit manually. The package already exists on winget, so this is a
+  # fast-tracked version update (no new-package review).
+  winget:
+    needs: release
+    runs-on: ubuntu-latest
+    env:
+      HAS_TOKEN: ${{ secrets.WINGET_TOKEN != '' }}
+    steps:
+      - name: Submit winget update PR
+        if: env.HAS_TOKEN == 'true'
+        uses: vedantmgoyal2009/winget-releaser@v2
+        with:
+          identifier: Amerganim.AmaderBanglaKeyboard
+          version: ${{ needs.release.outputs.version }}
+          release-tag: v${{ needs.release.outputs.version }}
+          installers-regex: 'Setup-.*\.exe$'
+          token: ${{ secrets.WINGET_TOKEN }}
+      - name: Note when skipped
+        if: env.HAS_TOKEN != 'true'
+        run: echo "WINGET_TOKEN secret not set - skipping auto winget submission. Add the secret (a PAT with public_repo scope) to enable it, or submit manually with wingetcreate."

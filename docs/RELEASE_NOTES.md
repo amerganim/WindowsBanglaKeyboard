@@ -1,12 +1,16 @@
-# Amader Bangla Keyboard 0.10.2
-
-Adds a single-file **Setup.exe** installer (Inno Setup), a winget manifest, and
-an automated build/release pipeline. Same keyboard features as 0.10.1.
-
-
+# Amader Bangla Keyboard 0.11.0
 
 A Windows phonetic Bangla keyboard (TSF input method). Type romanized Bangla in
-any app; switch with Win+Space.
+any app; switch with Win+Space. **Now available on winget:**
+`winget install Amerganim.AmaderBanglaKeyboard`.
+
+## New in 0.11.0
+- **Smart juktakkhor** — consonants now join into a conjunct only when they form
+  a *real* juktakkhor, so `zkhn` → যখন (not য্খ্ন), while every conjunct still
+  works. Pronunciation spellings: `biggan` → বিজ্ঞান, `onchol` → অঞ্চল.
+- **Forgiving suggestions** — ambiguous spellings still find the right word
+  (`nodi` → নদী, `akas` → আকাশ, `math` → মাঠ); exact spellings rank first.
+- **`c` → চ**, and uppercase letters no longer leak English (`C` → চ).
 
 ## Highlights
 - Phonetic engine: vowels/kar, conjuncts (juktakkhor), anusvara, chandrabindu,
