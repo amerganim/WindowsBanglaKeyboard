@@ -97,6 +97,9 @@ jobs:
     env:
       HAS_TOKEN: ${{ secrets.WINGET_TOKEN != '' }}
     steps:
+      - name: Checkout
+        if: env.HAS_TOKEN == 'true'
+        uses: actions/checkout@v4
       - name: Submit winget update PR
         if: env.HAS_TOKEN == 'true'
         uses: vedantmgoyal2009/winget-releaser@v2
@@ -106,6 +109,14 @@ jobs:
           release-tag: v${{ needs.release.outputs.version }}
           installers-regex: 'Setup-.*\.exe$'
           token: ${{ secrets.WINGET_TOKEN }}
+      # winget-releaser detects only ONE arch from our universal installer; this
+      # adds the missing arm64/x86 entries so validation passes (see the script).
+      - name: Ensure all architectures in winget PR
+        if: env.HAS_TOKEN == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.WINGET_TOKEN }}
+        run: ./scripts/winget-fix-arches.ps1 -Version ${{ needs.release.outputs.version }}
       - name: Note when skipped
         if: env.HAS_TOKEN != 'true'
         run: echo "WINGET_TOKEN secret not set - skipping auto winget submission. Add the secret (a PAT with public_repo scope) to enable it, or submit manually with wingetcreate."
