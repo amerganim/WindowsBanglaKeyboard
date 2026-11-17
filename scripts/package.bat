@@ -26,6 +26,7 @@ copy /y "%ROOT%\installer\dictionary.tsv" "%DIST%\dictionary.tsv" >nul
 copy /y "%ROOT%\installer\words.tsv" "%DIST%\words.tsv" >nul
 copy /y "%ROOT%\installer\README.md"     "%DIST%\README.md" >nul
 copy /y "%ROOT%\LICENSE"                 "%DIST%\LICENSE" >nul
+copy /y "%ROOT%\app\res\AppIcon.ico"     "%DIST%\AppIcon.ico" >nul
 
 echo.
 echo Packaged to %DIST%
