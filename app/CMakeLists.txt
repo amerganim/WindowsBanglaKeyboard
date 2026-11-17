@@ -1,6 +1,8 @@
 # Bangla Phonetic TSF Text Input Processor (COM in-proc DLL).
 # Build with: cmake -B build-x64 -DBUILD_TIP=ON   (then also build x86 for
 # 32-bit host apps; ship both).
+enable_language(RC)  # for res/BanglaPhonetic.rc (the keyboard's icon)
+
 add_library(BanglaPhonetic SHARED
   src/dllmain.cpp
   src/Globals.cpp
@@ -11,6 +13,7 @@ add_library(BanglaPhonetic SHARED
   src/CandidateWindow.cpp
   src/Register.cpp
   BanglaPhonetic.def
+  res/BanglaPhonetic.rc
 )
 
 target_include_directories(BanglaPhonetic PRIVATE

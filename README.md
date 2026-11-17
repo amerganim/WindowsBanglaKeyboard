@@ -1,11 +1,45 @@
+<p align="center"><img src="docs/assets/icon-256.png" width="128" alt="Amader Bangla Keyboard"></p>
+
 # Amader Bangla Keyboard
 
-A Windows input method to type **Bangla phonetically** (e.g. `amar` → আমার).
-After installation you switch your input to "Amader Bangla Keyboard" (Win+Space)
-and type romanized Bangla in any application.
+A free Windows keyboard to type **Bangla phonetically** (e.g. `amar` → আমার)
+in any app. After installing, switch your input to "Amader Bangla Keyboard"
+(**Win+Space**) and type romanized Bangla.
 
-Built as a **TSF Text Input Processor** (a native Windows input method) with a
-portable, unit-tested phonetic engine at its core.
+🌐 **Website & download:** https://amerganim.github.io/WindowsBanglaKeyboard/ ·
+📖 **Typing guide:** https://amerganim.github.io/WindowsBanglaKeyboard/guide.html
+
+Also available for **Mac** ([MacOSBanglaKeyboard](https://github.com/amerganim/MacOSBanglaKeyboard))
+and **Android** ([AndroidBanglaKeyboard](https://github.com/amerganim/AndroidBanglaKeyboard)).
+
+## How to get it (free)
+
+**Option 1 — Installer (easiest).** Download `AmaderBanglaKeyboard-Setup-x.y.z.exe`
+from the [latest release](https://github.com/amerganim/WindowsBanglaKeyboard/releases/latest)
+(or the [website](https://amerganim.github.io/WindowsBanglaKeyboard/)), double-click
+it and click **Next → Install**.
+
+> If Windows shows **"Windows protected your PC"**, click **More info → Run anyway**.
+> The keyboard is free, so it isn't signed with a paid certificate; the full
+> source code is in this repository.
+
+**Option 2 — winget** (Command Prompt or PowerShell):
+
+```bat
+winget install Amerganim.AmaderBanglaKeyboard
+```
+
+**Option 3 — zip.** Download `AmaderBanglaKeyboard-x.y.z.zip` from the release,
+unzip it, right-click `install.ps1` → **Run with PowerShell**.
+
+**Then:** press **Win+Space** and choose **Amader Bangla Keyboard**. Type
+`amar sOnar bangla` and press **Space** → আমার সোনার বাংলা.
+**Ctrl+Shift+B** switches between Bangla and English. If the keyboard isn't in
+the list, add the **Bangla** language in Settings → Time & language → Language
+& region, or sign out and back in once.
+
+**Uninstall:** Settings → Apps → Installed apps → Amader Bangla Keyboard →
+Uninstall (or `winget uninstall Amerganim.AmaderBanglaKeyboard`).
 
 ## Status
 
@@ -34,11 +68,16 @@ portable, unit-tested phonetic engine at its core.
 - ✅ **x64 + x86 + ARM64** binaries; architecture-aware installer.
 - ⏳ Next: code signing.
 
+The keyboard icon is shared with the Android and Mac versions
+(`docs/assets/icon-source.png`; regenerate `app/res/AppIcon.ico` with
+`python scripts/make-icon.py`). The website lives in `site/` and is deployed
+to GitHub Pages on every push to `main`.
+
 The bundled `words.tsv` is derived from
 [google/language-resources](https://github.com/google/language-resources) (bn),
 licensed **CC BY 4.0**.
 
-## Install
+## Install from source
 
 ```bat
 scripts\package.bat

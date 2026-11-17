@@ -67,6 +67,8 @@ try {
     Copy-Item (Join-Path $src 'KEYMAP.html') $guide -Force -ErrorAction SilentlyContinue
     Copy-Item (Join-Path $src 'dictionary.tsv') (Join-Path $dest 'dictionary.tsv') -Force -ErrorAction SilentlyContinue
     Copy-Item (Join-Path $src 'words.tsv') (Join-Path $dest 'words.tsv') -Force -ErrorAction SilentlyContinue
+    $icon = Join-Path $dest 'AppIcon.ico'
+    Copy-Item (Join-Path $src 'AppIcon.ico') $icon -Force -ErrorAction SilentlyContinue
 
     # Register the DLLs that match this PC's architecture. System32\regsvr32 is
     # the OS-native one (x64 on x64 Windows, ARM64 on ARM64 Windows); SysWOW64 is
@@ -107,6 +109,7 @@ try {
     Set-ItemProperty $arp DisplayVersion  $Version
     Set-ItemProperty $arp Publisher       $Publisher
     Set-ItemProperty $arp InstallLocation $dest
+    if (Test-Path $icon) { Set-ItemProperty $arp DisplayIcon $icon }
     Set-ItemProperty $arp UninstallString "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$dest\uninstall.ps1`""
     Set-ItemProperty $arp NoModify 1 -Type DWord
     Set-ItemProperty $arp NoRepair 1 -Type DWord
@@ -123,6 +126,7 @@ try {
         $lnk = $ws.CreateShortcut((Join-Path $folder 'Amader Bangla Keyboard Typing Guide.lnk'))
         $lnk.TargetPath = $guide
         $lnk.Description = 'How to type Bangla phonetically (key map / tutorial)'
+        if (Test-Path $icon) { $lnk.IconLocation = "$icon,0" }
         $lnk.Save()
     }
 

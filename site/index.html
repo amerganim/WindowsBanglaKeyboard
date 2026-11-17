@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Amader Bangla Keyboard for Windows</title>
+<meta name="description" content="Free phonetic Bangla keyboard for Windows 10 and 11. Type amar sOnar bangla → আমার সোনার বাংলা in every app.">
+<meta property="og:title" content="Amader Bangla Keyboard for Windows — ফ্রি বাংলা কিবোর্ড">
+<meta property="og:description" content="Free phonetic Bangla keyboard for Windows 10 and 11. Type amar sOnar bangla → আমার সোনার বাংলা in every app.">
+<meta property="og:image" content="icon.png">
+<link rel="icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f7fb; --surface: #ffffff; --text: #191a2e; --muted: #5d607a;
+    --line: #e2e3ef; --accent: #5b5bd6; --accent-ink: #ffffff; --red: #5b5bd6;
+    --code-bg: #15162a; --code-text: #e9e9fb; --soft: #ececfb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1020; --surface: #171830; --text: #ebebf7; --muted: #a2a4c0;
+      --line: #2a2c4a; --accent: #8b8cf0; --accent-ink: #0f1020; --soft: #1f2040; --red: #8b8cf0;
+      --code-bg: #08091a;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: Inter, "Hind Siliguri", system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+  }
+  .bn, [lang="bn"] { font-family: "Hind Siliguri", Inter, system-ui, sans-serif; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 0 16px; }
+  header { padding: 56px 0 32px; text-align: center; }
+  .logo { width: 96px; height: 96px; border-radius: 22px; }
+  h1 { font-size: clamp(1.9rem, 5vw, 2.8rem); line-height: 1.15; margin: 18px 0 8px; letter-spacing: -0.02em; }
+  .tag { color: var(--muted); font-size: 1.1rem; margin: 0 auto; max-width: 620px; }
+  .demo {
+    margin: 28px auto 0; max-width: 560px; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px;
+    text-align: left; font-size: 1.05rem;
+  }
+  .demo .row { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+  .demo code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); }
+  .demo .arrow { color: var(--red); font-weight: 700; }
+  .demo .out { font-family: "Hind Siliguri", sans-serif; font-size: 1.35rem; font-weight: 600; }
+  .badges { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 18px; }
+  .badge { font-size: .85rem; padding: 4px 12px; border-radius: 999px; background: var(--soft); color: var(--accent); font-weight: 600; }
+  section { padding: 28px 0; }
+  h2 { font-size: 1.5rem; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); margin: 0 0 18px; }
+  .cards { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; min-width: 0; }
+  .card h3 { margin: 0 0 4px; font-size: 1.1rem; }
+  .card p { margin: 0 0 14px; color: var(--muted); font-size: .95rem; }
+  .pill { display: inline-block; font-size: .75rem; font-weight: 700; color: var(--accent-ink); background: var(--accent); border-radius: 6px; padding: 1px 8px; margin-left: 6px; vertical-align: middle; }
+  .cmd {
+    position: relative; background: var(--code-bg); color: var(--code-text);
+    border-radius: 10px; padding: 14px 14px 14px 14px; font: .82rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+    white-space: pre-wrap; word-break: break-all; margin: 0;
+  }
+  .copy {
+    margin-top: 10px; border: 0; cursor: pointer; font: inherit; font-weight: 600; font-size: .9rem;
+    background: var(--accent); color: var(--accent-ink); padding: 8px 14px; border-radius: 8px;
+  }
+  .btn {
+    display: inline-block; text-decoration: none; font-weight: 600;
+    background: var(--accent); color: var(--accent-ink); padding: 10px 16px; border-radius: 10px;
+  }
+  .btn.secondary { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+  ol.steps { padding-left: 1.3em; margin: 0; }
+  ol.steps li { margin: 6px 0; }
+  kbd { font: .85em ui-monospace, Menlo, monospace; background: var(--soft); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 0 6px; }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  tr:last-child td { border-bottom: 0; }
+  td code { font-family: ui-monospace, Menlo, monospace; }
+  td.bn { font-size: 1.2rem; }
+  .note { background: var(--soft); border-radius: 10px; padding: 12px 14px; color: var(--text); font-size: .95rem; }
+  footer { padding: 36px 0 56px; color: var(--muted); font-size: .9rem; text-align: center; }
+  footer a, section a { color: var(--accent); }
+</style>
+</head>
+<body>
+<header class="wrap">
+  <img class="logo" src="icon.png" alt="">
+  <h1>Amader Bangla Keyboard <span style="white-space:nowrap">for Windows</span></h1>
+  <p class="tag bn">ইংরেজি অক্ষরে উচ্চারণ অনুযায়ী লিখুন, পান বাংলা — Windows-এর যেকোনো অ্যাপে। সম্পূর্ণ ফ্রি।</p>
+  <p class="tag">Type Bangla phonetically in every Windows app. Free and open source.</p>
+  <div class="demo">
+    <div class="row"><code>amar sOnar bangla</code><span class="arrow">→</span><span class="out">আমার সোনার বাংলা</span></div>
+    <div class="row"><code>ami tOmake valObasi</code><span class="arrow">→</span><span class="out">আমি তোমাকে ভালোবাসি</span></div>
+  </div>
+  <div class="badges">
+    <span class="badge">Windows 10 &amp; 11</span><span class="badge">x64 · x86 · ARM64</span>
+    <span class="badge">Free · MIT</span><span class="badge">No tracking</span>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="install">
+    <h2>Install <span class="bn">· ইনস্টল</span></h2>
+    <p class="sub">Choose one way. <span class="bn">যেকোনো একটি উপায় বেছে নিন।</span></p>
+    <div class="cards">
+      <div class="card">
+        <h3>Setup.exe <span class="pill">Easiest</span></h3>
+        <p class="bn">ডাউনলোড করে ডাবল-ক্লিক করুন, তারপর Next → Install।</p>
+        <a class="btn" id="dl" href="https://github.com/amerganim/WindowsBanglaKeyboard/releases/latest">Download for Windows</a>
+        <p id="dl-meta" style="margin:10px 0 0;font-size:.85rem"></p>
+      </div>
+      <div class="card">
+        <h3>winget</h3>
+        <p>Command Prompt বা PowerShell-এ:</p>
+        <pre class="cmd" id="c1">winget install Amerganim.AmaderBanglaKeyboard</pre>
+        <button class="copy" data-copy="c1">Copy</button>
+      </div>
+      <div class="card">
+        <h3>Zip (manual)</h3>
+        <p class="bn">Zip খুলে <code>install.ps1</code>-এ right-click → <b>Run with PowerShell</b>।</p>
+        <a class="btn secondary" href="https://github.com/amerganim/WindowsBanglaKeyboard/releases/latest">All downloads</a>
+      </div>
+    </div>
+    <p class="note bn" style="margin-top:16px"><b>“Windows protected your PC”</b> দেখালে: <b>More info</b> → <b>Run anyway</b>। অ্যাপটি ফ্রি, তাই পেইড কোড-সাইনিং সার্টিফিকেট নেই — এটি নিরাপদ এবং ওপেন সোর্স।</p>
+  </section>
+
+  <section id="setup">
+    <h2>Start typing <span class="bn">· লেখা শুরু করুন</span></h2>
+    <div class="card">
+      <ol class="steps bn">
+        <li><kbd>Win</kbd>+<kbd>Space</kbd> চেপে <b>Amader Bangla Keyboard</b> বেছে নিন (টাস্কবারের ভাষা আইকন থেকেও পারবেন)।</li>
+        <li>যেকোনো অ্যাপে ইংরেজি অক্ষরে লিখুন, যেমন <code>amar</code> → আমার, তারপর <kbd>Space</kbd>।</li>
+        <li>তালিকায় না দেখালে: Settings → Time &amp; language → Language &amp; region → <b>Bangla</b> ভাষা যোগ করুন, অথবা একবার sign out করে আবার sign in করুন।</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="use">
+    <h2>How to type <span class="bn">· কিভাবে লিখবেন</span></h2>
+    <p class="sub bn">শব্দ লিখে Space চাপুন। বড় হাতের অক্ষর আলাদা অক্ষর (<code>t</code> = ত, <code>T</code> = ট)।</p>
+    <table>
+      <tr><th>Type</th><th>Get</th><th>Type</th><th>Get</th></tr>
+      <tr><td><code>bangladesh</code></td><td class="bn">বাংলাদেশ</td><td><code>chele</code></td><td class="bn">ছেলে</td></tr>
+      <tr><td><code>kShoma</code></td><td class="bn">ক্ষমা</td><td><code>cai</code></td><td class="bn">চাই</td></tr>
+      <tr><td><code>sundor</code></td><td class="bn">সুন্দর</td><td><code>ca^d</code></td><td class="bn">চাঁদ</td></tr>
+      <tr><td><code>korm</code></td><td class="bn">কর্ম</td><td><code>du:kh</code></td><td class="bn">দুঃখ</td></tr>
+      <tr><td><code>2026</code></td><td class="bn">২০২৬</td><td><code>.</code></td><td class="bn">।</td></tr>
+    </table>
+    <div class="cards" style="margin-top:16px">
+      <div class="card"><h3><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd></h3><p class="bn">বাংলা ↔ English বদলান। অন্য কিবোর্ডে যেতে <kbd>Win</kbd>+<kbd>Space</kbd>।</p></div>
+      <div class="card"><h3>Suggestions</h3><p class="bn">লেখার সময় শব্দের তালিকা আসে: <kbd>↓</kbd><kbd>↑</kbd> দিয়ে বাছুন, <kbd>Space</kbd> দিয়ে নিন। আপনার পছন্দ মনে রাখে।</p></div>
+      <div class="card"><h3>Full guide</h3><p class="bn">সব অক্ষর, কার, চিহ্ন ও ২৯৭টি যুক্তাক্ষর।</p><a class="btn secondary" href="guide.html">Open typing guide</a></div>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">
+  <p>Also for Mac: <a href="https://amerganim.github.io/MacOSBanglaKeyboard/">Amader Bangla Keyboard for macOS</a> ·
+  Android: <a href="https://github.com/amerganim/AndroidBanglaKeyboard">AndroidBanglaKeyboard</a> ·
+  Source code: <a href="https://github.com/amerganim/WindowsBanglaKeyboard">GitHub</a></p>
+  <p>MIT License · Word list derived from google/language-resources (CC BY 4.0)</p>
+</footer>
+
+<script>
+  document.querySelectorAll('.copy').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var text = document.getElementById(b.dataset.copy).textContent;
+      function done() { b.textContent = 'Copied ✓'; setTimeout(function () { b.textContent = 'Copy'; }, 1600); }
+      if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, function () {});
+    });
+  });
+  // Point the download button straight at the newest Setup.exe (falls back to
+  // the releases page if the GitHub API is unreachable or rate-limited).
+  fetch('https://api.github.com/repos/amerganim/WindowsBanglaKeyboard/releases/latest')
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (rel) {
+      if (!rel) return;
+      var exe = (rel.assets || []).filter(function (a) { return /Setup.*\.exe$/i.test(a.name); })[0];
+      if (!exe) return;
+      document.getElementById('dl').href = exe.browser_download_url;
+      document.getElementById('dl-meta').textContent =
+        'Version ' + rel.tag_name.replace(/^v/, '') + ' · ' + (exe.size / 1048576).toFixed(1) + ' MB';
+    })
+    .catch(function () {});
+</script>
+</body>
+</html>

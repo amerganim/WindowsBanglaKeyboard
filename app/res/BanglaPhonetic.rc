@@ -1,0 +1,4 @@
+// Embedded resources for the Amader Bangla Keyboard text service.
+// The first ICON resource (index 0) is what Register.cpp passes to
+// AddLanguageProfile, so it is the icon shown in the Windows input switcher.
+1 ICON "AppIcon.ico"

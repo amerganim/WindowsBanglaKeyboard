@@ -25,7 +25,7 @@ DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 DisableDirPage=yes
 UninstallDisplayName={#MyAppName}
-UninstallDisplayIcon={app}\BanglaPhonetic_x64.dll
+UninstallDisplayIcon={app}\AppIcon.ico
 PrivilegesRequired=admin
 ArchitecturesAllowed=x86compatible x64compatible arm64
 ArchitecturesInstallIn64BitMode=x64compatible arm64
@@ -34,6 +34,7 @@ Compression=lzma2
 SolidCompression=yes
 ; SourceDir is the repo root, so "dist\..." paths below resolve.
 SourceDir={#SourcePath}\..
+SetupIconFile=app\res\AppIcon.ico
 OutputDir=release
 OutputBaseFilename=AmaderBanglaKeyboard-Setup-{#MyAppVersion}
 
@@ -48,9 +49,10 @@ Source: "dist\dictionary.tsv"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\words.tsv";      DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\KEYMAP.html";    DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\LICENSE";        DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\AppIcon.ico";    DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\{#MyAppName} Typing Guide"; Filename: "{app}\KEYMAP.html"
+Name: "{group}\{#MyAppName} Typing Guide"; Filename: "{app}\KEYMAP.html"; IconFilename: "{app}\AppIcon.ico"
 Name: "{group}\Uninstall {#MyAppName}"; Filename: "{uninstallexe}"
 
 [Run]
