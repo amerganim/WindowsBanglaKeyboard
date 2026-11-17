@@ -1,13 +1,22 @@
-# Amader Bangla Keyboard 0.11.0
+# Amader Bangla Keyboard 0.12.0
 
 A Windows phonetic Bangla keyboard (TSF input method). Type romanized Bangla in
 any app; switch with Win+Space. **Now available on winget:**
 `winget install Amerganim.AmaderBanglaKeyboard`.
 
+## New in 0.12.0
+- **ছ with one h** — `ch` now types ছ and `c` types চ (`chele` → ছেলে,
+  `cai` → চাই, `hocche` → হচ্ছে). The old `chh` still works.
+- **New icon**, the same as the Android and Mac keyboards — in the Win+Space
+  switcher, Setup, Apps & features and the Start Menu.
+- **Website:** https://amerganim.github.io/WindowsBanglaKeyboard/ (download +
+  typing guide).
+- Also available for Mac: https://amerganim.github.io/MacOSBanglaKeyboard/
+
 ## New in 0.11.0
 - **Smart juktakkhor** — consonants now join into a conjunct only when they form
   a *real* juktakkhor, so `zkhn` → যখন (not য্খ্ন), while every conjunct still
-  works. Pronunciation spellings: `biggan` → বিজ্ঞান, `onchol` → অঞ্চল.
+  works. Pronunciation spellings: `biggan` → বিজ্ঞান, `oncol` → অঞ্চল.
 - **Forgiving suggestions** — ambiguous spellings still find the right word
   (`nodi` → নদী, `akas` → আকাশ, `math` → মাঠ); exact spellings rank first.
 - **`c` → চ**, and uppercase letters no longer leak English (`C` → চ).
@@ -23,8 +32,10 @@ any app; switch with Win+Space. **Now available on winget:**
 - **x64 + x86 + ARM64** binaries; architecture-aware installer.
 
 ## Install
-Extract the zip, right-click `install.ps1` → **Run with PowerShell** (it
-elevates). Then Win+Space → “Amader Bangla Keyboard”. See `README.md` inside the
+Download `AmaderBanglaKeyboard-Setup-0.12.0.exe` below and run it (if
+SmartScreen warns: **More info → Run anyway**), or
+`winget install Amerganim.AmaderBanglaKeyboard`. Or extract the zip,
+right-click `install.ps1` → **Run with PowerShell** (it elevates). Then Win+Space → “Amader Bangla Keyboard”. See `README.md` inside the
 zip. No restart needed; no fonts needed (Windows ships Nirmala UI).
 
 > Note: binaries are not yet code-signed, so SmartScreen may warn.
