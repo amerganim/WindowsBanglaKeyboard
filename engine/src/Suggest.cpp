@@ -33,7 +33,7 @@ const BuiltinEntry kBuiltin[] = {
     {"keno", "কেন", 75},        {"kemon", "কেমন", 75},
     {"ke", "কে", 70},           {"koto", "কত", 65},
     {"bhalo", "ভালো", 90},      {"bhalobasa", "ভালোবাসা", 70},
-    {"achhi", "আছি", 70},       {"achhe", "আছে", 75},
+    {"achi", "আছি", 70},       {"ache", "আছে", 75},
     {"kora", "করা", 65},        {"hobe", "হবে", 70},
     {"dhonnobad", "ধন্যবাদ", 80}, {"aj", "আজ", 65},
     {"ekhon", "এখন", 65},       {"bangla", "বাংলা", 85},
@@ -44,7 +44,7 @@ const BuiltinEntry kBuiltin[] = {
     {"taka", "টাকা", 60},       {"nam", "নাম", 60},
     {"kotha", "কথা", 65},       {"jibon", "জীবন", 60},
     {"sundor", "সুন্দর", 70},   {"onek", "অনেক", 70},
-    {"sob", "সব", 65},          {"kichu", "কিছু", 65},
+    {"sob", "সব", 65},          {"kicu", "কিছু", 65},
 };
 
 char Lower(char c) {

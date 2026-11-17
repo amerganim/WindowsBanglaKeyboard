@@ -65,7 +65,7 @@ std::vector<uint32_t> DecodeUtf8(const std::string& s) {
 std::string ToRoman(const std::string& bangla) {
   static const std::map<uint32_t, const char*> kCons = {
       {0x0995,"k"},{0x0996,"kh"},{0x0997,"g"},{0x0998,"gh"},{0x0999,"Ng"},
-      {0x099A,"ch"},{0x099B,"chh"},{0x099C,"j"},{0x099D,"jh"},{0x099E,"NG"},
+      {0x099A,"c"},{0x099B,"ch"},{0x099C,"j"},{0x099D,"jh"},{0x099E,"NG"},
       {0x099F,"T"},{0x09A0,"Th"},{0x09A1,"D"},{0x09A2,"Dh"},{0x09A3,"N"},
       {0x09A4,"t"},{0x09A5,"th"},{0x09A6,"d"},{0x09A7,"dh"},{0x09A8,"n"},
       {0x09AA,"p"},{0x09AB,"ph"},{0x09AC,"b"},{0x09AD,"bh"},{0x09AE,"m"},
@@ -156,7 +156,7 @@ int main() {
   Check("bangla", "বাংলা");
 
   // Combining marks and the vocalic vowel ঋ.
-  Check("cha^d", "চাঁদ");   // chandrabindu
+  Check("ca^d", "চাঁদ");   // chandrabindu
   Check("rriSi", "ঋষি");    // ঋ + ষ + ি
   Check("a^", "আঁ");        // chandrabindu after independent vowel
   Check("a:", "আঃ");        // visarga
@@ -205,7 +205,18 @@ int main() {
   // lowercase key (no leaked English capital): C -> চ, Bistarito -> বিস্তারিত.
   Check("c", "চ");
   Check("C", "চ");
-  Check("Cha", "চা");
+  Check("Ca", "চা");
+
+  // ছ needs a single h: ch -> ছ (the old chh still works); c -> চ.
+  Check("chele", "ছেলে");
+  Check("chhele", "ছেলে");
+  Check("cha", "ছা");
+  Check("cOkh", "চোখ");
+  Check("hocche", "হচ্ছে");
+  Check("acchha", "আচ্ছা");
+  Check("gach", "গাছ");
+  CheckSmart("panc", "পাঞ্চ");
+  CheckSmart("ponchi", "পঞ্ছি");
   Check("Bistarito", "বিস্তারিত");
   Check("Q", "q");  // truly unknown letter passes through lowercased
 
@@ -300,7 +311,7 @@ int main() {
   CheckSmart("fr", "ফ্র");
   // Pronunciation spellings.
   CheckSmart("biggan", "বিজ্ঞান");
-  CheckSmart("onchol", "অঞ্চল");
+  CheckSmart("oncol", "অঞ্চল");
   CheckSmart("panjabi", "পাঞ্জাবি");
   // The ঙ digraph must not be mangled by the gg->জ্ঞ shortcut.
   CheckSmart("rNggo", "র্ঙ্গ");
@@ -346,7 +357,7 @@ int main() {
     auto v1 = s.Suggest("nodi", 9, true);   // নদি -> fuzzy নদী
     auto v2 = s.Suggest("akas", 9, true);   // আকাস -> fuzzy আকাশ
     auto v3 = s.Suggest("math", 9, true);   // মাথ  -> fuzzy মাঠ
-    auto v4 = s.Suggest("chhatro", 9, true);  // exact still works
+    auto v4 = s.Suggest("chatro", 9, true);  // exact still works
     ++g_total;
     if (Contains(v1, "নদী") && Contains(v2, "আকাশ") && Contains(v3, "মাঠ") &&
         Contains(v4, "ছাত্র")) {

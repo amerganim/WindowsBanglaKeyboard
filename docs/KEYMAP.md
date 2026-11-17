@@ -40,8 +40,8 @@ A vowel typed at the start of a word (or after another vowel) is an
 | গ | `g`  | | ড | `D`  | | ব | `b` |
 | ঘ | `gh` | | ঢ | `Dh` | | ভ | `bh` / `v` |
 | ঙ | `Ng` | | ণ | `N`  | | ম | `m` |
-| চ | `ch` | | ত | `t`  | | য | `z` |
-| ছ | `chh`| | থ | `th` | | র | `r` |
+| চ | `c` | | ত | `t`  | | য | `z` |
+| ছ | `ch`| | থ | `th` | | র | `r` |
 | জ | `j`  | | দ | `d`  | | ল | `l` |
 | ঝ | `jh` | | ধ | `dh` | | শ | `sh` |
 | ঞ | `NG` | | ন | `n`  | | ষ | `S` / `Sh` |
@@ -57,6 +57,8 @@ Special consonant forms:
 | য় | `y` / `Y` | ya with nukta (`noy` → নয়) |
 | ৎ | `` t` `` | khanda-ta |
 
+> Note: `c` = চ and `ch` = ছ (the older `chh` also still works for ছ).
+
 > Note: `j` = জ and `z` = য are different letters. `y`/`Y` = য় (the
 > semivowel, as in `noy` → নয়).
 
@@ -70,7 +72,7 @@ Special consonant forms:
 | Sign | Type | Name | Example |
 |:----:|:----:|------|---------|
 | ং | `ng` | anusvara | `bangla` → বাংলা |
-| ঁ | `^`  | chandrabindu | `cha^d` → চাঁদ |
+| ঁ | `^`  | chandrabindu | `ca^d` → চাঁদ |
 | ঃ | `:`  | visarga | `du:kh` → দুঃখ |
 | । | `.`  | dari (full stop) | `sheS.` → শেষ। |
 | ্ | `` ` `` | hasanta (force half-form) | see ref / ya-phala below |
@@ -109,7 +111,7 @@ lists were verified against the engine (297/297). The bundled typing guide
 | স্ত | `st`  | স + ত |
 | ল্ল | `ll`  | ল + ল |
 | ষ্ট | `ShT` | ষ + ট |
-| শ্চ | `shch`| শ + চ |
+| শ্চ | `shc`| শ + চ |
 
 Examples: `sundor` → সুন্দর, `bistarito` → বিস্তারিত, `kShoma` → ক্ষমা.
 

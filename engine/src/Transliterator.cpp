@@ -45,8 +45,8 @@ const std::unordered_map<std::string, Unit>& Table() {
       {"Ng", {Kind::Consonant, "ঙ", ""}},  // velar-nasal letter ঙ
       {"NG", {Kind::Consonant, "ঞ", ""}},  // letter ঞ (ny)
       {"c", {Kind::Consonant, "চ", ""}},
-      {"ch", {Kind::Consonant, "চ", ""}},
-      {"chh", {Kind::Consonant, "ছ", ""}},
+      {"ch", {Kind::Consonant, "ছ", ""}},   // ছ with a single h
+      {"chh", {Kind::Consonant, "ছ", ""}},  // old spelling, still accepted
       {"j", {Kind::Consonant, "জ", ""}},
       {"jh", {Kind::Consonant, "ঝ", ""}},
       {"T", {Kind::Consonant, "ট", ""}},
@@ -235,7 +235,7 @@ std::shared_ptr<const std::unordered_set<std::string>> Clusters() {
 }
 
 // Pronunciation spellings (smart mode): `gg` -> জ্ঞ (jNG), but NOT when the first
-// g belongs to the ঙ digraph "Ng"; and `n` before চ/ছ/জ/ঝ -> ঞ (NG).
+// g belongs to the ঙ digraph "Ng"; and `n` before চ/ছ/জ/ঝ (c, ch, j, jh) -> ঞ (NG).
 std::string ApplyPhoneticSpellings(const std::string& s) {
   std::string a;
   a.reserve(s.size());
@@ -252,8 +252,7 @@ std::string ApplyPhoneticSpellings(const std::string& s) {
   b.reserve(a.size());
   for (size_t i = 0; i < a.size();) {
     if (a[i] == 'n' && i + 1 <= a.size()) {
-      if (a.compare(i + 1, 3, "chh") == 0) { b += "NGchh"; i += 4; continue; }
-      if (a.compare(i + 1, 2, "ch") == 0)  { b += "NGch";  i += 3; continue; }
+      if (a.compare(i + 1, 1, "c") == 0)   { b += "NG";    i += 1; continue; }
       if (a.compare(i + 1, 2, "jh") == 0)  { b += "NGjh";  i += 3; continue; }
       if (a.compare(i + 1, 1, "j") == 0)   { b += "NGj";   i += 2; continue; }
     }
